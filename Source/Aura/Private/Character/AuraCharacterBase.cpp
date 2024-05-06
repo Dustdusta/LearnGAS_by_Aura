@@ -7,11 +7,11 @@ AAuraCharacterBase::AAuraCharacterBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	// Ê¹ÓÃCreateDefaultSubobjectº¯Êı´´½¨Ò»¸öÄ¬ÈÏµÄUSkeletalMeshComponent£¨¹Ç÷ÀÍø¸ñ×é¼ş£©ÊµÀı£¬²¢½«ÆäÃüÃûÎª"Weapon"
+	// ä½¿ç”¨CreateDefaultSubobjectå‡½æ•°åˆ›å»ºä¸€ä¸ªé»˜è®¤çš„USkeletalMeshComponentï¼ˆéª¨éª¼ç½‘æ ¼ç»„ä»¶ï¼‰å®ä¾‹ï¼Œå¹¶å°†å…¶å‘½åä¸º"Weapon"
 	Weapon = CreateDefaultSubobject<USkeletalMeshComponent>("Weapon");
-	// ½«ĞÂ´´½¨µÄÎäÆ÷×é¼şÉèÖÃÎª¸½¼Óµ½µ±Ç°Actor£¨¼ÙÉèÊÇ½ÇÉ«£©µÄÍø¸ñ×é¼şÉÏ£¬Á¬½ÓµãÎª"WeaponHandSocket"²å²Û
+	// å°†æ–°åˆ›å»ºçš„æ­¦å™¨ç»„ä»¶è®¾ç½®ä¸ºé™„åŠ åˆ°å½“å‰Actorï¼ˆå‡è®¾æ˜¯è§’è‰²ï¼‰çš„ç½‘æ ¼ç»„ä»¶ä¸Šï¼Œè¿æ¥ç‚¹ä¸º"WeaponHandSocket"æ’æ§½
 	Weapon->SetupAttachment(GetMesh(), FName("WeaponHandSocket"));
-	// ÉèÖÃÎäÆ÷×é¼şµÄÅö×²×´Ì¬Îª½ûÓÃ£¬¼´²»²ÎÓëÎïÀíÅö×²¼ì²â
+	// è®¾ç½®"Weapon"ç»„ä»¶çš„ç¢°æ’æ£€æµ‹çŠ¶æ€ä¸ºç¦ç”¨ï¼ˆNoCollisionï¼‰ï¼Œè¿™æ„å‘³ç€å®ƒå°†ä¸ä¼šå‚ä¸ä»»ä½•ç‰©ç†ç¢°æ’è®¡ç®—
 	Weapon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 }
