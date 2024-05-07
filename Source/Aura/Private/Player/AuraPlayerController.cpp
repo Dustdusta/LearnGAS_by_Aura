@@ -5,11 +5,71 @@
 
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "Interaction/EnemyInterface.h"
 
 
 AAuraPlayerController::AAuraPlayerController()
 {
 	bReplicates = true;
+}
+
+void AAuraPlayerController::PlayerTick(float DeltaTime)
+{
+	Super::PlayerTick(DeltaTime);
+
+	CursorTrace();
+}
+
+void AAuraPlayerController::CursorTrace()
+{
+	// 获取鼠标光标下的命中结果，ECC_Visibility表示我们关心的碰撞频道（在这种情况下可能是可见几何体）
+	FHitResult CursorHit;
+	GetHitResultUnderCursor(ECC_Visibility, false, CursorHit);
+	// 检查命中测试是否成功并返回一个阻塞命中（即是否有物体被鼠标光标下方的射线击中）
+	if (!CursorHit.bBlockingHit)
+		return;
+	// 将上一次选中的Actor保存到LastActor变量中
+	LastActor = ThisActor;
+	// 对当前鼠标光标下的命中结果所对应的Actor进行类型转换，尝试将其转换为IEnemyInterface接口类型
+	ThisActor = Cast<IEnemyInterface>(CursorHit.GetActor());
+	/**
+	 * Line trace from cursor. There are several scenarios;
+	 * A. LastActor is null && ThisActor is null
+	 *		- Do nothing
+	 * B. LastActor is null && ThisActor is valid
+	 *		- Highlight ThisActor
+	 * C. LastActor is valid && ThisActor is null
+	 * 		- UnHighlight LastActor
+	 * D. Both actors are valid, but LastActor != ThisActor
+	 * 		- UnHighlight LastActor, Highlight ThisActor
+	 * E. Both actors are valid, and LastActor == ThisActor
+	 * 		- Do nothing
+	 */
+	if (LastActor == nullptr)
+	{
+		if (ThisActor != nullptr)
+		{
+			// Case B
+			ThisActor->HighlightActor();
+		}
+	}
+	else // LastActor is valid
+	{
+		if (ThisActor == nullptr)
+		{
+			// Case C
+			LastActor->UnHighlightActor();
+		}
+		else // Both actors are valid
+		{
+			if (LastActor != ThisActor)
+			{
+				// Case D
+				LastActor->UnHighlightActor();
+				ThisActor->HighlightActor();
+			}
+		}
+	}
 }
 
 void AAuraPlayerController::BeginPlay()
@@ -43,10 +103,10 @@ void AAuraPlayerController::BeginPlay()
 void AAuraPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
-	
+
 	// 将输入组件转换为增强型输入组件
 	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
-	
+
 	// 绑定移动动作到Move方法
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AAuraPlayerController::Move);
 }
@@ -73,7 +133,7 @@ void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
 	if (APawn* ControlledPawn = GetPawn<APawn>())
 	{
 		// 向Pawn添加移动输入，根据输入轴向量控制移动方向和速度
-		ControlledPawn->AddMovementInput(ForwardDirection,InputAxisVector.Y);
-		ControlledPawn->AddMovementInput(RightDirection,InputAxisVector.X);
+		ControlledPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y);
+		ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
 	}
 }
