@@ -14,6 +14,8 @@ AAuraEnemy::AAuraEnemy()
 	AbilitySystemComponent = CreateDefaultSubobject<UAuraAbilitySystemComponent>("AbilitySystemComponent");
 	// 设置属性AbilitySystemComponent可被网络复制
 	AbilitySystemComponent->SetIsReplicated(true);
+	// 设置属性AbilitySystemComponent的网络复制模式为Minimal
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
 
 	AttributeSet = CreateDefaultSubobject<UAuraAttributeSet>("AttributeSet");
 }
