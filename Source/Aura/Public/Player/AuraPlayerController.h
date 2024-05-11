@@ -42,6 +42,8 @@ private:
 
 	void CursorTrace();
 
+
+	// AURATODO: 变量需要使用TScriptInterface<IEnemyInterface>,而不是直接使用IEnemyInterface*
 	IEnemyInterface* LastActor;
 	IEnemyInterface* ThisActor;
 };

@@ -31,7 +31,8 @@ void AAuraPlayerController::CursorTrace()
 	// 将上一次选中的Actor保存到LastActor变量中
 	LastActor = ThisActor;
 	// 对当前鼠标光标下的命中结果所对应的Actor进行类型转换，尝试将其转换为IEnemyInterface接口类型
-	ThisActor = Cast<IEnemyInterface>(CursorHit.GetActor());
+	 ThisActor = Cast<IEnemyInterface>(CursorHit.GetActor());
+	// ThisActor.SetInterface(Cast<IEnemyInterface>(CursorHit.GetActor()));
 	/**
 	 * Line trace from cursor. There are several scenarios;
 	 * A. LastActor is null && ThisActor is null
@@ -82,9 +83,11 @@ void AAuraPlayerController::BeginPlay()
 	// 获取当前本地玩家关联的UEnhancedInputLocalPlayerSubsystem子系统实例
 	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
 	// 检查获取的子系统实例是否存在，如果为空则抛出断言错误
-	check(Subsystem);
-	// 将成员变量AuraContext添加到增强输入子系统中
-	Subsystem->AddMappingContext(AuraContext, 0);
+	if (Subsystem)
+	{
+		// 将成员变量AuraContext添加到增强输入子系统中
+		Subsystem->AddMappingContext(AuraContext, 0);
+	}
 
 	// 设置显示鼠标光标并定义默认鼠标光标形状
 	bShowMouseCursor = true;
