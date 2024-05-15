@@ -27,6 +27,11 @@ public:
 	// 注册用于复制的变量
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	// GE更改属性之前调用这个函数
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+	// GE更改属性之后调用这个函数
+	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Vital Attributes", ReplicatedUsing = OnRep_Health)
 	FGameplayAttributeData Health;
 	// 使用宏添加属性访问器
