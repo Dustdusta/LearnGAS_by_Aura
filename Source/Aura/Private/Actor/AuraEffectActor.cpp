@@ -64,7 +64,7 @@ void AAuraEffectActor::OnEndOverlap(AActor* TargetActor)
 		ApplyEffectToTarget(TargetActor, DurationGameplayEffectClass);
 	}
 	if (InfiniteEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnEndOverlap)
-	{ 
+	{
 		ApplyEffectToTarget(TargetActor, InfiniteGameplayEffectClass);
 	}
 	if (InfiniteEffectRemovalPolicy == EEffectRemovalPolicy::RemoveOnEndOverlap)
@@ -73,20 +73,22 @@ void AAuraEffectActor::OnEndOverlap(AActor* TargetActor)
 		if (!IsValid(TargetASC)) return;
 
 		// TArray<FActiveGameplayEffectHandle> HandlesToRemove;
-		// for(TTuple<FActiveGameplayEffectHandle, UAbilitySystemComponent*> HandlePair:ActiveEffectHandles)
+		// for (TTuple<FActiveGameplayEffectHandle, UAbilitySystemComponent*> HandlePair : ActiveEffectHandles)
 		// {
-		// 	if(TargetASC == HandlePair.Value)
+		// 	if (TargetASC == HandlePair.Value)
 		// 	{
-		// 		TargetASC->RemoveActiveGameplayEffect(HandlePair.Key);
+		// 		TargetASC->RemoveActiveGameplayEffect(HandlePair.Key, 1);
 		// 		HandlesToRemove.Add(HandlePair.Key);
 		// 	}
 		// }
-		// for(auto& Handle:HandlesToRemove)
+		// for (auto& Handle : HandlesToRemove)
 		// {
 		// 	ActiveEffectHandles.FindAndRemoveChecked(Handle);
 		// }
-		const FActiveGameplayEffectHandle ActiveGameplayEffectHandle = ActiveEffectHandles.FindChecked(TargetASC);
-		TargetASC->RemoveActiveGameplayEffect(ActiveGameplayEffectHandle,1);
+		const FActiveGameplayEffectHandle* ActiveGameplayEffectHandle = ActiveEffectHandles.Find(TargetASC);
+		if(ActiveGameplayEffectHandle == nullptr)
+			return;
+		TargetASC->RemoveActiveGameplayEffect(*ActiveGameplayEffectHandle,1);
 		ActiveEffectHandles.FindAndRemoveChecked(TargetASC);
 	}
 }
