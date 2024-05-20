@@ -60,7 +60,7 @@ public:
 
 	// GE更改属性之前调用这个函数
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
-	// GE更改属性之后调用这个函数
+	// GE更改属性之后调用这个函数，可实际限制值的范围
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Vital Attributes", ReplicatedUsing = OnRep_Health)
