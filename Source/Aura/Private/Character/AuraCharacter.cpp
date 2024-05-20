@@ -66,4 +66,7 @@ void AAuraCharacter::InitAbilityActorInfo()
 			AuraHUD->InitOverlay(AuraPlayerController, AuraPlayerState, AbilitySystemComponent, AttributeSet);
 		}
 	}
+
+	// 在设置ASC后，调用初始化GE
+	InitializePrimaryAttributes();
 }

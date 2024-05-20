@@ -3,6 +3,9 @@
 
 #include "Character/AuraCharacterBase.h"
 
+#include "AbilitySystemComponent.h"
+#include "ShaderPrintParameters.h"
+
 AAuraCharacterBase::AAuraCharacterBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
@@ -13,7 +16,6 @@ AAuraCharacterBase::AAuraCharacterBase()
 	Weapon->SetupAttachment(GetMesh(), FName("WeaponHandSocket"));
 	// 设置"Weapon"组件的碰撞检测状态为禁用（NoCollision），这意味着它将不会参与任何物理碰撞计算
 	Weapon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
 }
 
 UAbilitySystemComponent* AAuraCharacterBase::GetAbilitySystemComponent() const
@@ -24,12 +26,19 @@ UAbilitySystemComponent* AAuraCharacterBase::GetAbilitySystemComponent() const
 void AAuraCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
-
-	
 }
 
 void AAuraCharacterBase::InitAbilityActorInfo()
 {
 }
 
-
+void AAuraCharacterBase::InitializePrimaryAttributes() const
+{
+	// 检查ASC和DefaultPrimaryAttributes是否为有效对象
+	check(IsValid(GetAbilitySystemComponent()))
+	check(DefaultPrimaryAttributes)
+	// 这是将GE规格应用于ASC的定式
+	const FGameplayEffectContextHandle ContextHandle = GetAbilitySystemComponent()->MakeEffectContext();
+	const FGameplayEffectSpecHandle SpecHandle = GetAbilitySystemComponent()->MakeOutgoingSpec(DefaultPrimaryAttributes, 1.f, ContextHandle);
+	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), GetAbilitySystemComponent());
+}
