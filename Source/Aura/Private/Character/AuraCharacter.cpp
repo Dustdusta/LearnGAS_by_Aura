@@ -68,5 +68,5 @@ void AAuraCharacter::InitAbilityActorInfo()
 	}
 
 	// 在设置ASC后，调用初始化GE
-	InitializePrimaryAttributes();
+	InitializeDefaultAttributes();
 }
