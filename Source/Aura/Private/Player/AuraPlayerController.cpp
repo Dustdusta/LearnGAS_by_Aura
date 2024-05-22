@@ -31,8 +31,8 @@ void AAuraPlayerController::CursorTrace()
 	// 将上一次选中的Actor保存到LastActor变量中
 	LastActor = ThisActor;
 	// 对当前鼠标光标下的命中结果所对应的Actor进行类型转换，尝试将其转换为IEnemyInterface接口类型
-	 ThisActor = Cast<IEnemyInterface>(CursorHit.GetActor());
-	// ThisActor.SetInterface(Cast<IEnemyInterface>(CursorHit.GetActor()));
+	ThisActor = CursorHit.GetActor();
+	
 	/**
 	 * Line trace from cursor. There are several scenarios;
 	 * A. LastActor is null && ThisActor is null
