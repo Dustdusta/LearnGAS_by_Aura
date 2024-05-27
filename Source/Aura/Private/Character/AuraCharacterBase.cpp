@@ -4,7 +4,6 @@
 #include "Character/AuraCharacterBase.h"
 
 #include "AbilitySystemComponent.h"
-#include "ShaderPrintParameters.h"
 
 AAuraCharacterBase::AAuraCharacterBase()
 {
