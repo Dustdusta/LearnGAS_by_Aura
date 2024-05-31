@@ -14,6 +14,7 @@ GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
 GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
 GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
+
 USTRUCT()
 struct FEffectProperties
 {
@@ -45,6 +46,16 @@ struct FEffectProperties
 };
 
 
+
+// 使用typedef来定义类型的别名
+//typedef TBaseStaticDelegateInstance<FGameplayAttribute(), FDefaultDelegateUserPolicy>::FFuncPtr FAttributeFuncPtr;
+
+//使用template定义一个模板，使用模板参数T来定义一个函数指针类型
+template<class T>
+using TStaticFuncPtr = typename TBaseStaticDelegateInstance<T, FDefaultDelegateUserPolicy>::FFuncPtr;
+
+
+
 /**
  * 
  */
@@ -63,11 +74,18 @@ public:
 	// GE更改属性之后调用这个函数，可实际限制值的范围
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
+	
+	//建立一个从FGameplayTag到FGameplayAttribute函数指针的映射
+	TMap<FGameplayTag, TStaticFuncPtr<FGameplayAttribute()>> TagsToAttributes;
+
+
+	
 #pragma region 声明属性
 	/*
 	 * Primary Attributes
 	 */
-	UPROPERTY(BlueprintReadOnly, Category = "Primary Attributes", ReplicatedUsing = OnRep_Strength)
+	UPROPERTY
+	(BlueprintReadOnly, Category = "Primary Attributes", ReplicatedUsing = OnRep_Strength)
 	FGameplayAttributeData Strength;
 	ATTRIBUTE_ACCESSORS(UAuraAttributeSet, Strength);
 	UFUNCTION()
@@ -171,7 +189,7 @@ public:
 	UFUNCTION()
 	void OnRep_Mana(const FGameplayAttributeData& OldMana) const;
 #pragma endregion
-	
+
 private:
 	void SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props) const;
 };
