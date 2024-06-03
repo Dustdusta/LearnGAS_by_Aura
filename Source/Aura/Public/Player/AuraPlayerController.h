@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "GameplayTagContainer.h"
 #include "AuraPlayerController.generated.h"
 
+class UAuraInputConfig;
 // 声明一个输入映射上下文类（UInputMappingContext）的引用
 class UInputMappingContext;
 
@@ -44,5 +46,12 @@ private:
 
 	TScriptInterface<IEnemyInterface> LastActor;
 	TScriptInterface<IEnemyInterface> ThisActor;
-	
+
+	void AbilityInputTagPressed(FGameplayTag GameplayTag);
+	void AbilityInputTagReleased(FGameplayTag GameplayTag);
+	void AbilityInputTagHeld(FGameplayTag GameplayTag);
+
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UAuraInputConfig> InputConfig;
 };
