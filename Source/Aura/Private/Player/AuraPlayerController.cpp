@@ -3,7 +3,9 @@
 
 #include "Player/AuraPlayerController.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
 #include "EnhancedInputSubsystems.h"
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Input/AuraInputComponent.h"
 #include "Interaction/EnemyInterface.h"
 
@@ -32,7 +34,7 @@ void AAuraPlayerController::CursorTrace()
 	LastActor = ThisActor;
 	// 对当前鼠标光标下的命中结果所对应的Actor进行类型转换，尝试将其转换为IEnemyInterface接口类型
 	ThisActor = CursorHit.GetActor();
-	
+
 	/**
 	 * Line trace from cursor. There are several scenarios;
 	 * A. LastActor is null && ThisActor is null
@@ -73,16 +75,30 @@ void AAuraPlayerController::CursorTrace()
 	}
 }
 
-void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag GameplayTag)
+void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 {
+	//GetASC()->AbilityInputTagPressed(InputTag);
 }
 
-void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag GameplayTag)
+void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 {
+	if(GetASC() == nullptr) return;
+	GetASC()->AbilityInputTagReleased(InputTag);
 }
 
-void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag GameplayTag)
+void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 {
+	if(GetASC() == nullptr) return;
+	GetASC()->AbilityInputTagHeld(InputTag);
+}
+
+UAuraAbilitySystemComponent* AAuraPlayerController::GetASC()
+{
+	if (AuraAbilitySystemComponent == nullptr)
+	{
+		AuraAbilitySystemComponent = Cast<UAuraAbilitySystemComponent>(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetPawn<APawn>()));
+	}
+	return AuraAbilitySystemComponent;
 }
 
 void AAuraPlayerController::BeginPlay()
@@ -124,8 +140,7 @@ void AAuraPlayerController::SetupInputComponent()
 
 	// 绑定移动动作到Move方法
 	AuraInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AAuraPlayerController::Move);
-	AuraInputComponent->BindAbilityAction(InputConfig,this, &ThisClass::AbilityInputTagPressed,&ThisClass::AbilityInputTagReleased,&ThisClass::AbilityInputTagHeld);
-	
+	AuraInputComponent->BindAbilityAction(InputConfig, this, &ThisClass::AbilityInputTagPressed, &ThisClass::AbilityInputTagReleased, &ThisClass::AbilityInputTagHeld);
 }
 
 /**

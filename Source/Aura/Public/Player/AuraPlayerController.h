@@ -10,12 +10,10 @@
 class UAuraInputConfig;
 // 声明一个输入映射上下文类（UInputMappingContext）的引用
 class UInputMappingContext;
-
 class UInputAction;
-
 struct FInputActionValue;
-
 class IEnemyInterface;
+class UAuraAbilitySystemComponent;
 /**
  * 
  */
@@ -47,11 +45,16 @@ private:
 	TScriptInterface<IEnemyInterface> LastActor;
 	TScriptInterface<IEnemyInterface> ThisActor;
 
-	void AbilityInputTagPressed(FGameplayTag GameplayTag);
-	void AbilityInputTagReleased(FGameplayTag GameplayTag);
-	void AbilityInputTagHeld(FGameplayTag GameplayTag);
+	void AbilityInputTagPressed(FGameplayTag InputTag);
+	void AbilityInputTagReleased(FGameplayTag InputTag);
+	void AbilityInputTagHeld(FGameplayTag InputTag);
 
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UAuraInputConfig> InputConfig;
+
+	UPROPERTY()
+	TObjectPtr<UAuraAbilitySystemComponent> AuraAbilitySystemComponent;
+
+	UAuraAbilitySystemComponent* GetASC();
 };
