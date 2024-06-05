@@ -39,7 +39,7 @@ void UAuraInputComponent::BindAbilityAction(const UAuraInputConfig* InputConfig,
 			if(ReleasedFunc)
 			{
 				// 停止输入时，我们会调用这个函数回调
-				BindAction(Action.InputAction,ETriggerEvent::Completed, Object, PressedFunc, Action.InputTag);
+				BindAction(Action.InputAction,ETriggerEvent::Completed, Object, ReleasedFunc, Action.InputTag);
 			}
 			
 			if (HeldFunc)
