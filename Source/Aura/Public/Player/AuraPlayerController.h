@@ -71,11 +71,13 @@ private:
 	// 存储鼠标是否正在瞄准敌人
 	bool bTargeting = false;
 
-	// 存储自动运行接受半径
+	// 存储启动自动寻路的半径
 	UPROPERTY(EditDefaultsOnly)
 	float AutoRunAcceptanceRadius = 50.f;
 
 	// 存储构造的样条线
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USplineComponent> Spline;
+
+	void AutoRun();
 };
