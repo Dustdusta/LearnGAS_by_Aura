@@ -50,7 +50,6 @@ void AAuraPlayerController::AutoRun()
 void AAuraPlayerController::CursorTrace()
 {
 	// 获取鼠标光标下的命中结果，ECC_Visibility表示我们关心的碰撞频道（在这种情况下可能是可见几何体）
-	FHitResult CursorHit;
 	GetHitResultUnderCursor(ECC_Visibility, false, CursorHit);
 	// 检查命中测试是否成功并返回一个阻塞命中（即是否有物体被鼠标光标下方的射线击中）
 	if (!CursorHit.bBlockingHit)
@@ -73,29 +72,15 @@ void AAuraPlayerController::CursorTrace()
 	 * E. Both actors are valid, and LastActor == ThisActor
 	 * 		- Do nothing
 	 */
-	if (LastActor == nullptr)
+	if(LastActor != ThisActor)
 	{
-		if (ThisActor != nullptr)
+		if (LastActor)
 		{
-			// Case B
-			ThisActor->HighlightActor();
-		}
-	}
-	else // LastActor is valid
-	{
-		if (ThisActor == nullptr)
-		{
-			// Case C
 			LastActor->UnHighlightActor();
 		}
-		else // Both actors are valid
+		if (ThisActor)
 		{
-			if (LastActor != ThisActor)
-			{
-				// Case D
-				LastActor->UnHighlightActor();
-				ThisActor->HighlightActor();
-			}
+			ThisActor->HighlightActor();
 		}
 	}
 }
@@ -129,7 +114,7 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 	}
 	else
 	{
-		APawn* ControlledPawn = GetPawn();
+		 const APawn* ControlledPawn = GetPawn();
 		if (FollowTime <= ShortPressThreshold && ControlledPawn)
 		{
 			if (UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(this, ControlledPawn->GetActorLocation(), CachedDestination))
@@ -138,7 +123,7 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 				for (const FVector& PointLoc : NavPath->PathPoints)
 				{
 					Spline->AddSplinePoint(PointLoc, ESplineCoordinateSpace::World);
-					DrawDebugSphere(GetWorld(), PointLoc, 8.f, 8, FColor::Green, false, 5.f);
+					//DrawDebugSphere(GetWorld(), PointLoc, 8.f, 8, FColor::Green, false, 5.f);
 				}
 				CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
 				bAutoRunning = true;
@@ -173,11 +158,10 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 	{
 		FollowTime += GetWorld()->GetDeltaSeconds();
 
-		FHitResult Hit;
-		if (GetHitResultUnderCursor(ECC_Visibility, false, Hit))
+		if (CursorHit.bBlockingHit)
 		{
 			// 获取鼠标光标下的命中位置
-			CachedDestination = Hit.ImpactPoint;
+			CachedDestination = CursorHit.ImpactPoint;
 		}
 		if (APawn* ControllerPawn = GetPawn())
 		{
