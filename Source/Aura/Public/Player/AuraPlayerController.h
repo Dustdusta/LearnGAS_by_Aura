@@ -76,7 +76,7 @@ private:
 
 	// 存储启动自动寻路的半径
 	UPROPERTY(EditDefaultsOnly)
-	float AutoRunAcceptanceRadius = 50.f;
+	float AutoRunAcceptanceRadius = 2.f;
 
 	// 存储构造的样条线
 	UPROPERTY(VisibleAnywhere)
