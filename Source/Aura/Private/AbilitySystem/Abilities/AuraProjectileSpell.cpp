@@ -14,8 +14,14 @@ void UAuraProjectileSpell::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 
 	UKismetSystemLibrary::PrintString(this, FString("ActivateAbility (C++)"), true, true, FLinearColor::Yellow, 3);
 
-	const bool bIsServer = HasAuthority(&ActivationInfo);
-	// 如果在服务器端，则不执行下面的代码
+	
+	
+}
+
+void UAuraProjectileSpell::SpawnProjectile()
+{
+	const bool bIsServer = 	GetAvatarActorFromActorInfo()->HasAuthority();
+	// 如果不在服务器端，则不执行下面的代码
 	if (!bIsServer) return;
 
 	ICombatInterface* CombatInterface = Cast<ICombatInterface>(GetAvatarActorFromActorInfo());
