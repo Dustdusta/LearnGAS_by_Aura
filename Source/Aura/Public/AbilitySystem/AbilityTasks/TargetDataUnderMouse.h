@@ -18,6 +18,7 @@ class AURA_API UTargetDataUnderMouse : public UAbilityTask
 	GENERATED_BODY()
 
 public:
+	// 静态函数：获取当前鼠标下的目标信息
 	UFUNCTION(BlueprintCallable, Category="Ability|Tasks", meta=(DisplayName="TargetDataUnderMouse", HidePin = "OwningAbility", DefaultToSelf="OwningAbility", BlueprintInternalUseOnly = "true"))
 	static UTargetDataUnderMouse* CreateTargetDataUnderMouse(UGameplayAbility* OwningAbility);
 
@@ -25,7 +26,10 @@ public:
 	FMouseTargetDataSignature ValidData;
 
 private:
+	// 在这个类被创建时，此函数会被调用
 	virtual void Activate() override;
+
+	
 	void SendMouseCursorData();
 
 	void OnTargetDataReplicatedCallback(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag);

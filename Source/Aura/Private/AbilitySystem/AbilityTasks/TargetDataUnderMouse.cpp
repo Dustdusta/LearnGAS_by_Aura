@@ -6,6 +6,8 @@
 
 UTargetDataUnderMouse* UTargetDataUnderMouse::CreateTargetDataUnderMouse(UGameplayAbility* OwningAbility)
 {
+    // 使用 NewAbilityTask 宏来创建一个新的 UTargetDataUnderMouse 对象实例
+    // 这个宏会使用传入的 UGameplayAbility 对象来初始化新创建的任务对象
 	UTargetDataUnderMouse* MyObj = NewAbilityTask<UTargetDataUnderMouse>(OwningAbility);
 	return MyObj;
 }
@@ -17,7 +19,7 @@ void UTargetDataUnderMouse::Activate()
 	const bool bIsLocallyControlled = Ability->GetCurrentActorInfo()->IsLocallyControlled();
 	if (bIsLocallyControlled)
 	{
-		//  若是本地控制的，则表面在客户端，需发送数据至服务器
+		//  若是本地控制的，则表明在客户端，需发送数据至服务器
 		SendMouseCursorData();
 	}
 	else
@@ -60,7 +62,7 @@ void UTargetDataUnderMouse::SendMouseCursorData()
 	// 将点击数据发送到服务器
 	AbilitySystemComponent->ServerSetReplicatedTargetData(
 		GetAbilitySpecHandle(),
-		GetActivationPredictionKey(), // 当能力启动时，产生的预测键
+		GetActivationPredictionKey(), // 能力启动时，产生的预测键
 		DataHandle,
 		FGameplayTag(), // 传递一个空的GameplayTag
 		AbilitySystemComponent->ScopedPredictionKey
@@ -78,6 +80,7 @@ void UTargetDataUnderMouse::OnTargetDataReplicatedCallback(const FGameplayAbilit
 {
 	// ConsumeClientReplicatedTargetData会根据句柄和预测键检查服务器接收的数据Map，以确保数据被接收了
 	AbilitySystemComponent->ConsumeClientReplicatedTargetData(GetAbilitySpecHandle(),GetActivationPredictionKey());
+	
 	// 检查ShouldBroadcastAbilityTaskDelegates()，如果该GT尚未激活，这将阻止我们在不应该进行广播的情况下进行广播
 	if (ShouldBroadcastAbilityTaskDelegates())
 	{
