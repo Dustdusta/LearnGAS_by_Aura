@@ -35,8 +35,10 @@ void AAuraPlayerController::AutoRun()
 	if (APawn* ControllerPawn = GetPawn())
 	{
 		// 获取一个在Spline上最接近ControllerPawn的位置，以及该位置在Spline上的方向
-		const FVector LocationOnSpline = Spline->FindLocationClosestToWorldLocation(ControllerPawn->GetActorLocation(), ESplineCoordinateSpace::World);
-		const FVector Direction = Spline->FindDirectionClosestToWorldLocation(LocationOnSpline, ESplineCoordinateSpace::World);
+		const FVector LocationOnSpline = Spline->FindLocationClosestToWorldLocation(
+			ControllerPawn->GetActorLocation(), ESplineCoordinateSpace::World);
+		const FVector Direction = Spline->FindDirectionClosestToWorldLocation(
+			LocationOnSpline, ESplineCoordinateSpace::World);
 		ControllerPawn->AddMovementInput(Direction);
 
 		const float DistanceToDestination = (LocationOnSpline - CachedDestination).Length();
@@ -72,7 +74,7 @@ void AAuraPlayerController::CursorTrace()
 	 * E. Both actors are valid, and LastActor == ThisActor
 	 * 		- Do nothing
 	 */
-	if(LastActor != ThisActor)
+	if (LastActor != ThisActor)
 	{
 		if (LastActor)
 		{
@@ -97,38 +99,53 @@ void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 
 void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 {
+	// 检查输入标签是否与左鼠标按钮（LMB）的输入标签精确匹配。
+	// 如果不是左鼠标按钮的输入标签，则调用能力系统组件（ASC）的 AbilityInputTagReleased 方法，并提前返回。
 	if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
+		// 获取玩家控制器的能力系统组件
 		if (GetASC())
 		{
+			// 通知ASC关于输入标签的释放
 			GetASC()->AbilityInputTagReleased(InputTag);
 		}
 		return;
 	}
-	if (bTargeting)
+
+	// 如果是左鼠标按钮的输入标签，同样调用能力系统组件的 AbilityInputTagReleased 方法。
+	if (GetASC())
 	{
-		if (GetASC())
-		{
-			GetASC()->AbilityInputTagReleased(InputTag);
-		}
+		GetASC()->AbilityInputTagReleased(InputTag);
 	}
-	else
+
+	// 检查当前是否不在瞄准状态且Shift键没有被按下。
+	if (!bTargeting && !bShiftKeyDown)
 	{
-		 const APawn* ControlledPawn = GetPawn();
+		// 获取当前控制的Pawn（通常为角色）
+		const APawn* ControlledPawn = GetPawn();
+		// 检查跟随时间是否小于短按阈值，并且控制的角色存在
 		if (FollowTime <= ShortPressThreshold && ControlledPawn)
 		{
-			if (UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(this, ControlledPawn->GetActorLocation(), CachedDestination))
+			// 同步计算从角色当前位置到缓存目的地的导航路径
+			if (UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(
+				this, ControlledPawn->GetActorLocation(), CachedDestination))
 			{
+				// 清除现有的样条点
 				Spline->ClearSplinePoints();
+				// 遍历导航路径上的所有点，并将它们添加到样条上
 				for (const FVector& PointLoc : NavPath->PathPoints)
 				{
 					Spline->AddSplinePoint(PointLoc, ESplineCoordinateSpace::World);
+					// 在世界中绘制一个调试球体以可视化路径点
 					DrawDebugSphere(GetWorld(), PointLoc, 8.f, 8, FColor::Green, false, 5.f);
 				}
+				// 更新缓存的目的地为路径的最后一段
 				CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
+				// 设置自动运行标志为真
 				bAutoRunning = true;
 			}
 		}
+		// 重置跟随时间和瞄准标志
 		FollowTime = 0.f;
 		bTargeting = false;
 	}
@@ -147,7 +164,7 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 	}
 
 	// 判断是否正在瞄准敌人
-	if (bTargeting)
+	if (bTargeting || bShiftKeyDown)
 	{
 		if (GetASC())
 		{
@@ -175,7 +192,8 @@ UAuraAbilitySystemComponent* AAuraPlayerController::GetASC()
 {
 	if (AuraAbilitySystemComponent == nullptr)
 	{
-		AuraAbilitySystemComponent = Cast<UAuraAbilitySystemComponent>(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetPawn<APawn>()));
+		AuraAbilitySystemComponent = Cast<UAuraAbilitySystemComponent>(
+			UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetPawn<APawn>()));
 	}
 	return AuraAbilitySystemComponent;
 }
@@ -189,7 +207,8 @@ void AAuraPlayerController::BeginPlay()
 	check(AuraContext);
 
 	// 获取当前本地玩家关联的UEnhancedInputLocalPlayerSubsystem子系统实例
-	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
+	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
+		GetLocalPlayer());
 	// 检查获取的子系统实例是否存在，如果为空则抛出断言错误
 	if (Subsystem)
 	{
@@ -220,7 +239,10 @@ void AAuraPlayerController::SetupInputComponent()
 
 	// 绑定移动动作到Move方法
 	AuraInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AAuraPlayerController::Move);
-	AuraInputComponent->BindAbilityAction(InputConfig, this, &ThisClass::AbilityInputTagPressed, &ThisClass::AbilityInputTagReleased, &ThisClass::AbilityInputTagHeld);
+	AuraInputComponent->BindAction(ShiftAction, ETriggerEvent::Started, this, &AAuraPlayerController::ShiftPress);
+	AuraInputComponent->BindAction(ShiftAction, ETriggerEvent::Completed, this, &AAuraPlayerController::ShiftReleased);
+	AuraInputComponent->BindAbilityAction(InputConfig, this, &ThisClass::AbilityInputTagPressed,
+	                                      &ThisClass::AbilityInputTagReleased, &ThisClass::AbilityInputTagHeld);
 }
 
 /**
