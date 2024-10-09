@@ -11,6 +11,7 @@ Build
 *.opendb
 *.sdf
 *.sln
+*.sln.DotSettings.user
 *.suo
 *.xcodeproj
 *.xcworkspace
