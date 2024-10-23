@@ -4,6 +4,7 @@
 #include "Actor/AuraProjectile.h"
 
 #include "NiagaraFunctionLibrary.h"
+#include "Aura/Aura.h"
 #include "Components/AudioComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -18,6 +19,8 @@ AAuraProjectile::AAuraProjectile()
 	// 生成并设置球体碰撞体组件的相关信息
 	Sphere = CreateDefaultSubobject<USphereComponent>("Sphere");
 	SetRootComponent(Sphere);
+	Sphere->SetCollisionObjectType(ECC_Projectile);
+	// 设置碰撞启用模式为QueryOnly，这意味着只用于物理查询（如视线测试），而不是物理模拟
 	Sphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	Sphere->SetCollisionResponseToAllChannels(ECR_Ignore);
 	Sphere->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
