@@ -9,7 +9,7 @@
 
 AAuraEnemy::AAuraEnemy()
 {
-	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility,ECR_Block);
+	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 
 	AbilitySystemComponent = CreateDefaultSubobject<UAuraAbilitySystemComponent>("AbilitySystemComponent");
 	// 设置属性AbilitySystemComponent可被网络复制
@@ -49,7 +49,8 @@ void AAuraEnemy::BeginPlay()
 
 void AAuraEnemy::InitAbilityActorInfo()
 {
-	AbilitySystemComponent->InitAbilityActorInfo(this,this);
+	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 	Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->AbilityActorInfoSet();
 
+	InitializeDefaultAttributes();
 }

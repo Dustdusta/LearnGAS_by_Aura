@@ -133,16 +133,19 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 				// 清除现有的样条点
 				Spline->ClearSplinePoints();
 				// 遍历导航路径上的所有点，并将它们添加到样条上
-				for (const FVector& PointLoc : NavPath->PathPoints)
+				if(!NavPath->PathPoints.IsEmpty())
 				{
-					Spline->AddSplinePoint(PointLoc, ESplineCoordinateSpace::World);
-					// 在世界中绘制一个调试球体以可视化路径点
-					DrawDebugSphere(GetWorld(), PointLoc, 8.f, 8, FColor::Green, false, 5.f);
+					for (const FVector& PointLoc : NavPath->PathPoints)
+					{
+						Spline->AddSplinePoint(PointLoc, ESplineCoordinateSpace::World);
+						// 在世界中绘制一个调试球体以可视化路径点
+						DrawDebugSphere(GetWorld(), PointLoc, 8.f, 8, FColor::Green, false, 5.f);
+					}
+					// 更新缓存的目的地为路径的最后一段
+					CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
+					// 设置自动运行标志为真
+					bAutoRunning = true;
 				}
-				// 更新缓存的目的地为路径的最后一段
-				CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
-				// 设置自动运行标志为真
-				bAutoRunning = true;
 			}
 		}
 		// 重置跟随时间和瞄准标志

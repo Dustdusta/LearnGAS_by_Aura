@@ -3,7 +3,8 @@
 
 #include "AbilitySystem/Abilities/AuraProjectileSpell.h"
 
-#include "MovieSceneSection.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 #include "Actor/AuraProjectile.h"
 #include "Interaction/CombatInterface.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -53,7 +54,10 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 			Cast<APawn>(GetOwningActorFromActorInfo()),
 			ESpawnActorCollisionHandlingMethod::AlwaysSpawn); // 指定碰撞处理方式，这里选择总是生成投射物，即使它与场景中的其他物体发生碰撞
 
-		// AURATODO: Give the Projectile a Gameplay Effect Spec for cavsing Damage.
+		const UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());
+		const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), SourceASC->MakeEffectContext());
+		Projectile->DamageEffectSpecHandle = SpecHandle;
+
 		// 完成投射物的生成过程，此时会应用所有已设定的属性，并将投射物加入到世界中
 		Projectile->FinishSpawning(SpawnTransform);
 	}
