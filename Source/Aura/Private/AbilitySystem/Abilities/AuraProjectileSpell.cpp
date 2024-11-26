@@ -8,6 +8,7 @@
 #include "Actor/AuraProjectile.h"
 #include "Interaction/CombatInterface.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Aura/Public/AuraGameplayTags.h"
 
 void UAuraProjectileSpell::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
                                            const FGameplayAbilityActorInfo* ActorInfo,
@@ -54,8 +55,19 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 			Cast<APawn>(GetOwningActorFromActorInfo()),
 			ESpawnActorCollisionHandlingMethod::AlwaysSpawn); // 指定碰撞处理方式，这里选择总是生成投射物，即使它与场景中的其他物体发生碰撞
 
+		// 获取源角色的能力系统组件
 		const UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());
+		// 创建一个游戏效果规格句柄，用于应用伤害效果
 		const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), SourceASC->MakeEffectContext());
+		// 获取游戏标签实例
+		FAuraGameplayTags GameplayTags = FAuraGameplayTags::Get();
+		// 根据当前技能等级计算缩放后的伤害值
+		const float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
+		// 在屏幕上显示一条调试消息
+		GEngine->AddOnScreenDebugMessage(-1,3.f,FColor::Red,FString::Printf(TEXT("FireBolt Damage: %f"),ScaledDamage));
+		// 为游戏效果规格句柄分配一个由调用者设置的标签集，并设置其数值为50.0
+		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Damage, ScaledDamage);
+		// 将创建的游戏效果规格句柄赋值给投射物对象的DamageEffectSpecHandle属性
 		Projectile->DamageEffectSpecHandle = SpecHandle;
 
 		// 完成投射物的生成过程，此时会应用所有已设定的属性，并将投射物加入到世界中
