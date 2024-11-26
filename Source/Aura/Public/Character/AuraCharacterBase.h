@@ -36,7 +36,7 @@ protected:
 	FName WeaponTipSocketName;
 
 	virtual FVector GetCombatSocketLocation() override;
-	
+
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
@@ -56,10 +56,11 @@ protected:
 
 	void ApplyEffectToSelf(TSubclassOf<UGameplayEffect> GameplayEffectClass, float Level) const;
 
-	void InitializeDefaultAttributes() const;
+	virtual void InitializeDefaultAttributes() const;
 
 	// 增加角色GA的函数
 	void AddCharacterAbilities();
+
 private:
 	// 新增初始化时添加的GA列表
 	UPROPERTY(EditAnywhere, Category = "Abilities")
