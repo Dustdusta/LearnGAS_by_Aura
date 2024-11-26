@@ -65,7 +65,7 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 		const float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
 		// 在屏幕上显示一条调试消息
 		GEngine->AddOnScreenDebugMessage(-1,3.f,FColor::Red,FString::Printf(TEXT("FireBolt Damage: %f"),ScaledDamage));
-		// 为游戏效果规格句柄分配一个由调用者设置的标签集，并设置其数值为50.0
+		// 为游戏效果规格句柄分配一个由调用者设置的Damage标签，并设置伤害值为样条线Damage的对应等级的值
 		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Damage, ScaledDamage);
 		// 将创建的游戏效果规格句柄赋值给投射物对象的DamageEffectSpecHandle属性
 		Projectile->DamageEffectSpecHandle = SpecHandle;
