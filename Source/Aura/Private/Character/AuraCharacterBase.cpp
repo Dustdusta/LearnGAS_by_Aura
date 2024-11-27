@@ -31,6 +31,11 @@ UAbilitySystemComponent* AAuraCharacterBase::GetAbilitySystemComponent() const
 	return AbilitySystemComponent;
 }
 
+UAnimMontage* AAuraCharacterBase::GetHitReactMontage_Implementation()
+{
+	return HitReactMontage;
+}
+
 void AAuraCharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
@@ -50,11 +55,16 @@ void AAuraCharacterBase::ApplyEffectToSelf(TSubclassOf<UGameplayEffect> Gameplay
 {
 	check(IsValid(GetAbilitySystemComponent()))
 	check(GameplayEffectClass)
-	// 这是将GE规格应用于ASC的定式
+	/** --------------- 这是将GE不使用GA而直接应用的定式 ---------------- */
+	// 创建一个游戏效果上下文句柄
 	FGameplayEffectContextHandle ContextHandle = GetAbilitySystemComponent()->MakeEffectContext();
+	// 将当前对象添加到游戏效果上下文中作为源对象
 	ContextHandle.AddSourceObject(this);
+	// 创建一个游戏效果规格句柄，用于应用特定的游戏效果类
 	const FGameplayEffectSpecHandle SpecHandle = GetAbilitySystemComponent()->MakeOutgoingSpec(GameplayEffectClass, Level, ContextHandle);
+	// 将创建的游戏效果规格应用到目标（这里是自身）
 	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), GetAbilitySystemComponent());
+	/** -------------------------------------------------------- */
 }
 
 void AAuraCharacterBase::InitializeDefaultAttributes() const

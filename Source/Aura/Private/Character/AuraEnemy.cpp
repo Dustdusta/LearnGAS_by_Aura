@@ -9,6 +9,8 @@
 #include "Components/WidgetComponent.h"
 #include "Aura/Aura.h"
 #include "UI/Widget/AuraUserWidget.h"
+#include "AuraGameplayTags.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 AAuraEnemy::AAuraEnemy()
 {
@@ -48,17 +50,21 @@ int32 AAuraEnemy::GetPlayerLevel()
 void AAuraEnemy::BeginPlay()
 {
 	Super::BeginPlay();
+	// 设置角色最大移动速度为BaseWalkSpeed
+	GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
 
-	//初始化AbilitySystemComponent
+	// 初始化AbilitySystemComponent
 	InitAbilityActorInfo();
 
-	if(UAuraUserWidget* AuraUserWidget = Cast<UAuraUserWidget>(HealthBar->GetUserWidgetObject()))
+	// 调用函数库中的GiveStartupAbilities以初始化设置技能
+	UAuraAbilitySystemLibrary::GiveStartupAbilities(this,AbilitySystemComponent);
+
+	if (UAuraUserWidget* AuraUserWidget = Cast<UAuraUserWidget>(HealthBar->GetUserWidgetObject()))
 	{
 		AuraUserWidget->SetWidgetController(this);
 	}
 
 
-	
 	UAuraAttributeSet* AuraAS = Cast<UAuraAttributeSet>(AttributeSet);
 	if (AuraAS)
 	{
@@ -74,15 +80,28 @@ void AAuraEnemy::BeginPlay()
 				OnMaxHealthChanged.Broadcast(Data.NewValue);
 			});
 
+		// 当GameplayTag：Effect_HitReact发生新增和移除时，调用函数HitReactTagChange()
+		AbilitySystemComponent->RegisterGameplayTagEvent(FAuraGameplayTags::Get().Effect_HitReact, EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AAuraEnemy::HitReactTagChange);
+
+
 		// 广播初始值
 		OnHealthChanged.Broadcast(AuraAS->GetHealth());
 		OnMaxHealthChanged.Broadcast(AuraAS->GetMaxHealth());
 	}
+}
 
+// 当GameplayTag：Effect_HitReact发生新增和移除时，调用函数HitReactTagChange()
+void AAuraEnemy::HitReactTagChange(const FGameplayTag CallbackTag, int32 NewCount)
+{
+	bHitReacting = NewCount > 0;
+
+	// 判断bHitReacting设置最大移动速度
+	GetCharacterMovement()->MaxWalkSpeed = bHitReacting ? 0.f : BaseWalkSpeed;
 }
 
 void AAuraEnemy::InitAbilityActorInfo()
 {
+	// 调用该函数来设置OwnerActor和AvatarActor
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 	Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->AbilityActorInfoSet();
 

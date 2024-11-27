@@ -54,13 +54,17 @@ int32 AAuraCharacter::GetPlayerLevel()
 
 void AAuraCharacter::InitAbilityActorInfo()
 {
+	// 获取玩家状态对象，并将其转换为AAuraPlayerState类型
 	AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
+	// 检查AuraPlayerState是否成功获取，如果失败则会触发断言
 	check(AuraPlayerState);
+	// 调用该函数来设置OwnerActor和AvatarActor
 	AuraPlayerState->GetAbilitySystemComponent()->InitAbilityActorInfo(AuraPlayerState, this);
-	
+	// 将AuraPlayerState的能力系统组件转换为UAuraAbilitySystemComponent类型，并调用其AbilityActorInfoSet方法
 	Cast<UAuraAbilitySystemComponent>(AuraPlayerState->GetAbilitySystemComponent())->AbilityActorInfoSet();
-
+	// 将AuraPlayerState的能力系统组件赋值给本地变量AbilitySystemComponent
 	AbilitySystemComponent = AuraPlayerState->GetAbilitySystemComponent();
+	// 将AuraPlayerState的属性集赋值给本地变量AttributeSet
 	AttributeSet = AuraPlayerState->GetAttributeSet();
 
 	// Init Overlay in HUD

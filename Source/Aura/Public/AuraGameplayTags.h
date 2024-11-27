@@ -24,8 +24,8 @@ public:
 	FGameplayTag Attributes_Primary_Vigor;
 
 	/*
-		 * Secondary Attributes
-		 */
+	 * Secondary Attributes
+	 */
 	FGameplayTag Attributes_Secondary_Armor;
 	FGameplayTag Attributes_Secondary_ArmorPenetration;
 	FGameplayTag Attributes_Secondary_BlockChance;
@@ -47,8 +47,11 @@ public:
 	FGameplayTag InputTag_3;
 	FGameplayTag InputTag_4;
 
+	/*
+	 * 伤害相关 
+	 */
 	FGameplayTag Damage;
-
+	FGameplayTag Effect_HitReact;
 
 private:
 	static FAuraGameplayTags GameplayTags;

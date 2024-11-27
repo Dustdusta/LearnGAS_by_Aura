@@ -112,30 +112,47 @@ void UAuraAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData
 
 void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
+	// 调用父类的 PostGameplayEffectExecute 方法
 	Super::PostGameplayEffectExecute(Data);
 
+	// 创建一个 FEffectProperties 结构体来存储效果属性
 	FEffectProperties Props;
 	SetEffectProperties(Data, Props);
 
+	// 检查是否是健康值属性发生了变化
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
 		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
 		UE_LOG(LogTemp, Warning, TEXT("Changed Health on %s, Health: %f"), *Props.TargetAvatarActor->GetName(), GetHealth());
 	}
+	
+	// 检查是否是魔法值属性发生了变化
 	if (Data.EvaluatedData.Attribute == GetManaAttribute())
 	{
 		SetMana(FMath::Clamp(GetMana(), 0.f, GetMaxMana()));
 	}
+
+	// 检查是否是传入伤害属性发生了变化
 	if (Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())
 	{
+		// 获取当前的传入伤害值，并将其重置为 0
 		const float LocalIncomingDamage = GetIncomingDamage();
 		SetIncomingDamage(0.f);
+		// 如果传入伤害大于 0，则计算新的健康值
 		if (LocalIncomingDamage > 0.f)
 		{
 			const float NewHealth = GetHealth() - LocalIncomingDamage;
 			SetHealth(FMath::Clamp(NewHealth, 0.f, GetMaxHealth()));
 
+			// 检查新的健康值是否小于等于 0
 			const bool bFatal = NewHealth <=0.f;
+			if (!bFatal)
+			{
+				// 如果不是致命伤害，激活击中受击技能
+				FGameplayTagContainer TagContainer;
+				TagContainer.AddTag(FAuraGameplayTags::Get().Effect_HitReact);
+				Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
+			}
 		}
 	}
 }
