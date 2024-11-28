@@ -27,6 +27,19 @@ public:
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
 	virtual UAnimMontage* GetHitReactMontage_Implementation() override;
+
+	/**
+	 * 处理死亡时发生的事情的函数
+	 */
+	virtual void Die() override;
+
+	/**
+	 * NetMulticast - 判定死亡时调用的多播，在服务器和客户端上都执行。对应的实现函数会添加_Implementation后缀。\n
+	 * Reliable - 并指定函数为“可靠的”，当遇见网络错误时会重发以保证到达。一般用在逻辑关键的函数上。
+	 */
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void MulticastHandleDeath();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -62,6 +75,31 @@ protected:
 
 	// 为角色添加技能
 	void AddCharacterAbilities();
+
+	/**
+	 * 调用消融的函数
+	 */
+	void Dissolve();
+
+	/**
+	 * 采用我们将要创建的动态材质实例和时间轴\n
+	 * BlueprintImplementableEvent - 蓝图可重载
+	 * @param DynamicMaterialInstance 动态材质
+	 */
+	UFUNCTION(BlueprintImplementableEvent)
+	void StartDissolveTimeline(UMaterialInstanceDynamic* DynamicMaterialInstance);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void StartWeaponDissolveTimeline(UMaterialInstanceDynamic* DynamicMaterialInstance);
+
+	/**
+	 * 角色消融的材质\n
+	 * Dissolve Effects
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UMaterialInstance> DissolveMaterialInstance;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UMaterialInstance> WeaponDissolveMaterialInstance;
 
 private:
 	// 新增初始化时添加的GA列表

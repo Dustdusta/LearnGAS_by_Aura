@@ -12,10 +12,10 @@ AAuraCharacterBase::AAuraCharacterBase()
 	PrimaryActorTick.bCanEverTick = false;
 
 	// 设置胶囊体和网格体对镜头无碰撞
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera,ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	GetCapsuleComponent()->SetGenerateOverlapEvents(false);
-	GetMesh()->SetCollisionResponseToChannel(ECC_Camera,ECR_Ignore);
-	GetMesh()->SetCollisionResponseToChannel(ECC_Projectile,ECR_Overlap);
+	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECC_Projectile, ECR_Overlap);
 	GetMesh()->SetGenerateOverlapEvents(true);
 
 	// 使用CreateDefaultSubobject函数创建一个默认的USkeletalMeshComponent（骨骼网格组件）实例，并将其命名为"Weapon"
@@ -34,6 +34,43 @@ UAbilitySystemComponent* AAuraCharacterBase::GetAbilitySystemComponent() const
 UAnimMontage* AAuraCharacterBase::GetHitReactMontage_Implementation()
 {
 	return HitReactMontage;
+}
+
+void AAuraCharacterBase::Die()
+{
+	// 实现武器掉落的功能
+	Weapon->DetachFromComponent(FDetachmentTransformRules(EDetachmentRule::KeepWorld, true));
+	// 调用多播
+	MulticastHandleDeath();
+}
+
+void AAuraCharacterBase::MulticastHandleDeath_Implementation()
+{
+	// 使角色成为布娃娃状态
+	// 使武器开启物理状态
+	// 启用模拟物理
+	Weapon->SetSimulatePhysics(true);
+	// 启用重力
+	Weapon->SetEnableGravity(true);
+	// 启用碰撞，设置为仅物理
+	Weapon->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+
+	// 对网格进行布娃娃处理
+	// 启用模拟物理
+	GetMesh()->SetSimulatePhysics(true);
+	// 启用重力
+	GetMesh()->SetEnableGravity(true);
+	// 启用碰撞，设置为仅物理
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	// 将碰撞响应设置为要阻止的网格物体的世界静态通道
+	GetMesh()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+
+
+	// 设置胶囊体无碰撞
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	// 执行消融函数
+	Dissolve();
 }
 
 void AAuraCharacterBase::BeginPlay()
@@ -77,8 +114,26 @@ void AAuraCharacterBase::InitializeDefaultAttributes() const
 void AAuraCharacterBase::AddCharacterAbilities()
 {
 	// 添加角色能力应该只在服务器上
-	if(!HasAuthority()) return;
-	
+	if (!HasAuthority()) return;
+
 	UAuraAbilitySystemComponent* AuraASC = CastChecked<UAuraAbilitySystemComponent>(AbilitySystemComponent);
 	AuraASC->AddCharacterAbilities(StartupAbilities);
+}
+
+void AAuraCharacterBase::Dissolve()
+{
+	// 检查以确保溶解材质实例有效
+	if (IsValid(DissolveMaterialInstance))
+	{
+		UMaterialInstanceDynamic* DynamicMatInst = UMaterialInstanceDynamic::Create(DissolveMaterialInstance, this);
+		GetMesh()->SetMaterial(0, DynamicMatInst);
+		StartDissolveTimeline(DynamicMatInst);
+	}
+
+	if (IsValid(WeaponDissolveMaterialInstance))
+	{
+		UMaterialInstanceDynamic* WeaponDynamicMatInst = UMaterialInstanceDynamic::Create(WeaponDissolveMaterialInstance, this);
+		Weapon->SetMaterial(0, WeaponDynamicMatInst);
+		StartWeaponDissolveTimeline(WeaponDynamicMatInst);
+	}
 }

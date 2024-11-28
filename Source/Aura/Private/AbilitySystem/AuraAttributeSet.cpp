@@ -8,6 +8,7 @@
 #include "GameplayEffectExtension.h"
 #include "Net/UnrealNetwork.h"
 #include "AuraGameplayTags.h"
+#include "Interaction/CombatInterface.h"
 
 UAuraAttributeSet::UAuraAttributeSet()
 {
@@ -125,7 +126,7 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 		SetHealth(FMath::Clamp(GetHealth(), 0.f, GetMaxHealth()));
 		UE_LOG(LogTemp, Warning, TEXT("Changed Health on %s, Health: %f"), *Props.TargetAvatarActor->GetName(), GetHealth());
 	}
-	
+
 	// 检查是否是魔法值属性发生了变化
 	if (Data.EvaluatedData.Attribute == GetManaAttribute())
 	{
@@ -145,10 +146,19 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 			SetHealth(FMath::Clamp(NewHealth, 0.f, GetMaxHealth()));
 
 			// 检查新的健康值是否小于等于 0
-			const bool bFatal = NewHealth <=0.f;
-			if (!bFatal)
+			const bool bFatal = NewHealth <= 0.f;
+			// 如果是致命伤害，调用死亡函数
+			if (bFatal)
 			{
-				// 如果不是致命伤害，激活击中受击技能
+				ICombatInterface* CombatInterface = Cast<ICombatInterface>(Props.TargetAvatarActor);
+				if (CombatInterface)
+				{
+					CombatInterface->Die();
+				}
+			}
+			// 如果不是致命伤害，激活击中受击技能
+			else
+			{
 				FGameplayTagContainer TagContainer;
 				TagContainer.AddTag(FAuraGameplayTags::Get().Effect_HitReact);
 				Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
