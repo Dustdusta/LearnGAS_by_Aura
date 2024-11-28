@@ -15,6 +15,7 @@ struct FInputActionValue;
 class IEnemyInterface;
 class UAuraAbilitySystemComponent;
 class USplineComponent;
+class UDamageTextComponent;
 /**
  * 
  */
@@ -26,6 +27,14 @@ class AURA_API AAuraPlayerController : public APlayerController
 public:
 	AAuraPlayerController();
 	virtual void PlayerTick(float DeltaTime) override;
+
+	/**
+	 * 在TargetCharacter的RootComponent位置显示伤害数字
+	 * @param DamageAmount 伤害值
+	 * @param TargetCharacter 目标角色
+	 */
+	UFUNCTION(Client, Reliable)
+	void ShowDamageNumber(float DamageAmount, ACharacter* TargetCharacter);
 
 protected:
 	virtual void BeginPlay() override;
@@ -43,8 +52,8 @@ private:
 	UPROPERTY(EditAnywhere, Category="Input")
 	TObjectPtr<UInputAction> ShiftAction;
 	bool bShiftKeyDown = false;
-	void ShiftPress(){bShiftKeyDown = true;};
-	void ShiftReleased(){bShiftKeyDown = false;};
+	void ShiftPress() { bShiftKeyDown = true; };
+	void ShiftReleased() { bShiftKeyDown = false; };
 
 	void CursorTrace();
 
@@ -88,4 +97,7 @@ private:
 	TObjectPtr<USplineComponent> Spline;
 
 	void AutoRun();
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UDamageTextComponent> DamageTextComponentClass;
 };

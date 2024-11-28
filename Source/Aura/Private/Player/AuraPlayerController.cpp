@@ -6,12 +6,15 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AuraGameplayTags.h"
 #include "EnhancedInputSubsystems.h"
+#include "MovieSceneTracksComponentTypes.h"
 #include "NavigationPath.h"
 #include "NavigationSystem.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Components/SplineComponent.h"
+#include "GameFramework/Character.h"
 #include "Input/AuraInputComponent.h"
 #include "Interaction/EnemyInterface.h"
+#include "UI/Widget/DamageTextComponent.h"
 
 
 AAuraPlayerController::AAuraPlayerController()
@@ -27,6 +30,24 @@ void AAuraPlayerController::PlayerTick(float DeltaTime)
 
 	CursorTrace();
 	AutoRun();
+}
+
+void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, ACharacter* TargetCharacter)
+{
+	// 检查TargetCharacter是否有效（即非空且未被销毁），以及DamageTextComponentClass是否已设置。
+	if (IsValid(TargetCharacter) && DamageTextComponentClass)
+	{
+		// 创建一个新的UDamageTextComponent实例，使用之前指定的DamageTextComponentClass作为模板。
+		UDamageTextComponent* DamageText = NewObject<UDamageTextComponent>(TargetCharacter, DamageTextComponentClass);
+		// 注册新创建的组件，使其成为游戏世界的一部分。
+		DamageText->RegisterComponent();
+		// 将新创建的伤害文本组件附加到目标角色的根组件上，并保持相对变换不变。这意味着伤害数字将跟随目标角色移动，但相对于其位置保持固定。
+		DamageText->AttachToComponent(TargetCharacter->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		// 从组件上分离，但保持其在世界中的变换不变。这一步确保了即使目标角色移动，伤害数字也会停留在原位。
+		DamageText->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		// 设置伤害文本的内容为传入的DamageAmount值。这个方法可能负责更新组件内部UI元素来显示具体的伤害数值。
+		DamageText->SetDamageText(DamageAmount);
+	}
 }
 
 void AAuraPlayerController::AutoRun()
@@ -133,7 +154,7 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 				// 清除现有的样条点
 				Spline->ClearSplinePoints();
 				// 遍历导航路径上的所有点，并将它们添加到样条上
-				if(!NavPath->PathPoints.IsEmpty())
+				if (!NavPath->PathPoints.IsEmpty())
 				{
 					for (const FVector& PointLoc : NavPath->PathPoints)
 					{

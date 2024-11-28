@@ -8,7 +8,10 @@
 #include "GameplayEffectExtension.h"
 #include "Net/UnrealNetwork.h"
 #include "AuraGameplayTags.h"
+#include "Character/AuraCharacter.h"
 #include "Interaction/CombatInterface.h"
+#include "Kismet/GameplayStatics.h"
+#include "Player/AuraPlayerController.h"
 
 UAuraAttributeSet::UAuraAttributeSet()
 {
@@ -80,36 +83,47 @@ void UAuraAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, 
 void UAuraAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData& Data, FEffectProperties& Props) const
 {
 	// Source = causer of the effect, Target = target of the effect (owner of this AS)
+
+	// 从Data中获取效果上下文句柄，并将其存储在Props结构体中。这个上下文包含了关于效果应用时的各种信息，如触发者、目标等。
 	Props.EffectContextHandle = Data.EffectSpec.GetContext();
+	// 通过效果上下文句柄获取原始触发者的能力系统组件（Ability System Component, ASC）。ASC是处理角色能力的核心组件，比如技能、属性等。
 	Props.SourceASC = Props.EffectContextHandle.GetOriginalInstigatorAbilitySystemComponent();
 
-
+	// 检查源ASC是否有效，以及其关联的Actor信息是否有效。
 	if (IsValid(Props.SourceASC) && Props.SourceASC->AbilityActorInfo.IsValid() && Props.SourceASC->AbilityActorInfo->AvatarActor.IsValid())
 	{
+		// 获取源角色的AvatarActor（通常是指玩家控制的角色）。
 		Props.SourceAvatarActor = Props.SourceASC->AbilityActorInfo->AvatarActor.Get();
+		// 尝试获取源角色的控制器（PlayerController）。
 		Props.SourceController = Props.SourceASC->AbilityActorInfo->PlayerController.Get();
+		// 如果没有直接获得控制器，但AvatarActor存在，则尝试通过AvatarActor获取控制器。
 		if (Props.SourceController == nullptr && Props.SourceAvatarActor != nullptr)
 		{
+			// 将AvatarActor转换为Pawn类型并从中获取控制器。
 			if (const APawn* Pawn = Cast<APawn>(Props.SourceAvatarActor))
 			{
 				Props.SourceController = Pawn->GetController();
 			}
 		}
+		// 如果成功获得了控制器，尝试将控制器的Pawn转换为ACharacter类型。
 		if (Props.SourceController)
 		{
 			Props.SourceCharacter = Cast<ACharacter>(Props.SourceController->GetPawn());
 		}
 	}
-
+	// 检查目标的Actor信息是否有效。
 	if (Data.Target.AbilityActorInfo.IsValid() && Data.Target.AbilityActorInfo->AvatarActor.IsValid())
 	{
+		// 获取目标角色的AvatarActor。
 		Props.TargetAvatarActor = Data.Target.AbilityActorInfo->AvatarActor.Get();
+		// 尝试获取目标角色的控制器。
 		Props.TargetController = Data.Target.AbilityActorInfo->PlayerController.Get();
+		// 尝试将目标角色的AvatarActor转换为ACharacter类型。
 		Props.TargetCharacter = Cast<ACharacter>(Props.TargetAvatarActor);
+		// 通过蓝图库函数获取目标角色的能力系统组件。
 		Props.TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Props.TargetAvatarActor);
 	}
 }
-
 
 void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
@@ -163,6 +177,20 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 				TagContainer.AddTag(FAuraGameplayTags::Get().Effect_HitReact);
 				Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
 			}
+			
+			ShowFloatingText(Props, LocalIncomingDamage);
+		}
+	}
+}
+
+void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& Props, float Damage) const
+{
+	// 源角色和目标角色不同的时候
+	if (Props.SourceCharacter != Props.TargetCharacter)
+	{
+		if (AAuraPlayerController* PC = Cast<AAuraPlayerController>(UGameplayStatics::GetPlayerController(Props.SourceCharacter, 0)))
+		{
+			PC->ShowDamageNumber(Damage, Props.TargetCharacter);
 		}
 	}
 }
