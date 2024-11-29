@@ -4,6 +4,7 @@
 #include "AbilitySystem/ExecCalc/ExecCalc_Damage.h"
 
 #include "AbilitySystemComponent.h"
+#include "AuraGameplayTags.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 
 struct FAuraDamageStatic
@@ -13,6 +14,8 @@ struct FAuraDamageStatic
 	// 使用 DECLARE_ATTRIBUTE_CAPTUREDEF 宏声明一个属性捕获定义（CaptureDef），这里针对 Armor 属性。
 	// 这个宏用于在编译时生成一些必要的元数据，以便在运行时能够识别和操作 Armor 属性。
 	DECLARE_ATTRIBUTE_CAPTUREDEF(Armor);
+	DECLARE_ATTRIBUTE_CAPTUREDEF(BlockChance);
+
 
 	FAuraDamageStatic()
 	{
@@ -22,6 +25,7 @@ struct FAuraDamageStatic
 		// 第三个参数 Target 表示这是目标属性（相对于源属性）。
 		// 第四个参数 false 表示这个捕获定义不是可选的。
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, Armor, Target, false);
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, BlockChance, Target, false);
 	}
 };
 
@@ -41,6 +45,7 @@ static const FAuraDamageStatic& DamageStatic()
 UExecCalc_Damage::UExecCalc_Damage()
 {
 	RelevantAttributesToCapture.Add(DamageStatic().ArmorDef);
+	RelevantAttributesToCapture.Add(DamageStatic().BlockChanceDef);
 }
 
 void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
@@ -67,12 +72,32 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 	EvaluationParameters.SourceTags = SourceTags;
 	EvaluationParameters.TargetTags = TargetTags;
 
+	// Get Damage Set by Caller Magnitude
+	float Damage = Spec.GetSetByCallerMagnitude(FAuraGameplayTags::Get().Damage);
+
+	// Capture BlockChance on Target, and determine if there was a successful Back
+	// If Block, halve the damage.
+	float TargetBlockChance = 0.f;
+	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatic().BlockChanceDef, EvaluationParameters, TargetBlockChance);
+	TargetBlockChance = FMath::Max<float>(TargetBlockChance,0.f);
+
+	const bool bBlocked = FMath::RandRange(1,100) < TargetBlockChance;
+	Damage = bBlocked ? Damage / 2.f : Damage;
+	
+
+	// 创建一个新的FGameplayModifierEvaluatedData实例，表示一个属性修改器。这里指定了要修改的属性（UAuraAttributeSet::GetIncomingDamageAttribute()）、操作类型（Additive）以及修改的值（Damage）。
+	const FGameplayModifierEvaluatedData EvaluatedData(UAuraAttributeSet::GetIncomingDamageAttribute(), EGameplayModOp::Additive, Damage);
+	// 将计算出的属性修改器添加到输出中。这个修改器将会被应用到目标角色的相应属性上。
+	OutExecutionOutput.AddOutputModifier(EvaluatedData);
+
+
+	/*
 	// 定义一个变量来存储护甲值。
 	float Armor = 0.f;
 	// 尝试计算捕获的Armor属性的数值。使用DamageStatic().ArmorDef作为属性定义。如果计算成功，结果会存储在Armor变量中。
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatic().ArmorDef, EvaluationParameters, Armor);
 	// 确保护甲值至少为0，防止负数。
-	Armor = FMath::Max<float>(0.f, Armor);
+	Armor = FMath::Max<float>(Armor, 0.f);
 	// 增加护甲值1。这可能是一个简单的示例，实际游戏中可能需要更复杂的逻辑。
 	++Armor;
 
@@ -80,4 +105,5 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 	const FGameplayModifierEvaluatedData EvaluatedData(DamageStatic().ArmorProperty, EGameplayModOp::Additive, Armor);
 	// 将计算出的属性修改器添加到输出中。这个修改器将会被应用到目标角色的相应属性上。
 	OutExecutionOutput.AddOutputModifier(EvaluatedData);
+	*/
 }
