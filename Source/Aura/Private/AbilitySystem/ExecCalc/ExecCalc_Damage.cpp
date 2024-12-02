@@ -5,7 +5,10 @@
 
 #include "AbilitySystemComponent.h"
 #include "AuraGameplayTags.h"
+#include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "AbilitySystem/AuraAttributeSet.h"
+#include "AbilitySystem/Data/CharacterClassInfo.h"
+#include "Interaction/CombatInterface.h"
 
 struct FAuraDamageStatic
 {
@@ -63,8 +66,10 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 
 	// 获取源和目标的AvatarActor（通常是玩家控制的角色）。
 	// 如果ASC为空，则AvatarActor也会是nullptr。
-	const AActor* SourceAvatar = SourceASC ? SourceASC->GetAvatarActor() : nullptr;
-	const AActor* TargetAvatar = TargetASC ? TargetASC->GetAvatarActor() : nullptr;
+	AActor* SourceAvatar = SourceASC ? SourceASC->GetAvatarActor() : nullptr;
+	AActor* TargetAvatar = TargetASC ? TargetASC->GetAvatarActor() : nullptr;
+	ICombatInterface* SourceCombatInterface = Cast<ICombatInterface>(SourceAvatar);
+	ICombatInterface* TargetCombatInterface = Cast<ICombatInterface>(TargetAvatar);
 
 	// 获取当前游戏效果规格（Effect Spec），它包含了关于该效果的所有信息。
 	const FGameplayEffectSpec& Spec = ExecutionParams.GetOwningSpec();
@@ -100,13 +105,22 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatic().ArmorPenetrationDef, EvaluationParameters, SourceArmorPenetration);
 	SourceArmorPenetration = FMath::Max<float>(SourceArmorPenetration, 0.f);
 
+	const UCharacterClassInfo* CharacterClassInfo = UAuraAbilitySystemLibrary::GetCharacterClassInfo(SourceAvatar);
+
+	// 通过 CharacterClassInfo 上的 DamageCalculationCoefficients，获取护甲穿透的计算系数
+	const FRealCurve* ArmorPenetrationCurve = CharacterClassInfo->DamageCalculationCoefficients->FindCurve(FName("ArmorPenetration"), FString());
+	const float ArmorPenetrationCoefficient = ArmorPenetrationCurve->Eval(SourceCombatInterface->GetPlayerLevel());
+	
 	// ArmorPenetration ignores a percentage of the Target's Armor
-	const float EffectiveArmor = TargetArmor *= (100 - SourceArmorPenetration * 0.25f) / 100.f;
+	const float EffectiveArmor = TargetArmor *= (100 - SourceArmorPenetration * ArmorPenetrationCoefficient) / 100.f;
+	// 通过 CharacterClassInfo 上的 DamageCalculationCoefficients，获取护甲对伤害的计算系数
+	const FRealCurve* EffectiveArmorCurve = CharacterClassInfo->DamageCalculationCoefficients->FindCurve(FName("EffectiveArmor"), FString());
+	const float EffectiveArmorCurveCoefficient = EffectiveArmorCurve->Eval(TargetCombatInterface->GetPlayerLevel());
 	// Armor ignores a percentage of incoming Damage 
-	Damage *= (100 - EffectiveArmor * 0.333f) / 100.f;
+	Damage *= (100 - EffectiveArmor * EffectiveArmorCurveCoefficient) / 100.f;
 
 
-	// 创建一个新的FGameplayModifierEvaluatedData实例，表示一个属性修改器。这里指定了要修改的属性（UAuraAttributeSet::GetIncomingDamageAttribute()）、操作类型（Additive）以及修改的值（Damage）。
+	// 创建一个新的 FGameplayModifierEvaluatedData 实例，表示一个属性修改器。这里指定了要修改的属性（UAuraAttributeSet::GetIncomingDamageAttribute()）、操作类型（Additive）以及修改的值（Damage）。
 	const FGameplayModifierEvaluatedData EvaluatedData(UAuraAttributeSet::GetIncomingDamageAttribute(), EGameplayModOp::Additive, Damage);
 	// 将计算出的属性修改器添加到输出中。这个修改器将会被应用到目标角色的相应属性上。
 	OutExecutionOutput.AddOutputModifier(EvaluatedData);
