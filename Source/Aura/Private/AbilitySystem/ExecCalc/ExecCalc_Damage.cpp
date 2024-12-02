@@ -19,6 +19,9 @@ struct FAuraDamageStatic
 	DECLARE_ATTRIBUTE_CAPTUREDEF(Armor); // 捕获护甲
 	DECLARE_ATTRIBUTE_CAPTUREDEF(ArmorPenetration); // 捕获护甲穿透
 	DECLARE_ATTRIBUTE_CAPTUREDEF(BlockChance); // 捕获格挡几率
+	DECLARE_ATTRIBUTE_CAPTUREDEF(CriticalHitResistance); // 捕获暴击抗性
+	DECLARE_ATTRIBUTE_CAPTUREDEF(CriticalHitChance); // 捕获暴击几率
+	DECLARE_ATTRIBUTE_CAPTUREDEF(CriticalHitDamage); // 捕获暴击伤害
 
 
 	FAuraDamageStatic()
@@ -30,8 +33,11 @@ struct FAuraDamageStatic
 		// 第四个参数 false 表示这个捕获定义不是可选的。
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, Armor, Target, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, BlockChance, Target, false);
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, CriticalHitResistance, Target, false);
 
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, ArmorPenetration, Source, false);
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, CriticalHitChance, Source, false);
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, CriticalHitDamage, Source, false);
 	}
 };
 
@@ -53,7 +59,11 @@ UExecCalc_Damage::UExecCalc_Damage()
 	// 将 Armor 属性的定义添加到 RelevantAttributesToCapture 中。这意味着在执行自定义游戏效果时，系统会尝试捕获并计算该属性的值。
 	RelevantAttributesToCapture.Add(DamageStatic().ArmorDef);
 	RelevantAttributesToCapture.Add(DamageStatic().BlockChanceDef);
+	RelevantAttributesToCapture.Add(DamageStatic().CriticalHitResistanceDef);
+
 	RelevantAttributesToCapture.Add(DamageStatic().ArmorPenetrationDef);
+	RelevantAttributesToCapture.Add(DamageStatic().CriticalHitChanceDef);
+	RelevantAttributesToCapture.Add(DamageStatic().CriticalHitDamageDef);
 }
 
 void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
@@ -110,7 +120,7 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 	// 通过 CharacterClassInfo 上的 DamageCalculationCoefficients，获取护甲穿透的计算系数
 	const FRealCurve* ArmorPenetrationCurve = CharacterClassInfo->DamageCalculationCoefficients->FindCurve(FName("ArmorPenetration"), FString());
 	const float ArmorPenetrationCoefficient = ArmorPenetrationCurve->Eval(SourceCombatInterface->GetPlayerLevel());
-	
+
 	// ArmorPenetration ignores a percentage of the Target's Armor
 	const float EffectiveArmor = TargetArmor *= (100 - SourceArmorPenetration * ArmorPenetrationCoefficient) / 100.f;
 	// 通过 CharacterClassInfo 上的 DamageCalculationCoefficients，获取护甲对伤害的计算系数
@@ -118,6 +128,34 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 	const float EffectiveArmorCurveCoefficient = EffectiveArmorCurve->Eval(TargetCombatInterface->GetPlayerLevel());
 	// Armor ignores a percentage of incoming Damage 
 	Damage *= (100 - EffectiveArmor * EffectiveArmorCurveCoefficient) / 100.f;
+
+
+	// 计算暴击相关
+	// 获取 CriticalHitChance 的值并存储到变量 SourceCriticalHitChance
+	float SourceCriticalHitChance = 0.f;
+	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatic().CriticalHitChanceDef, EvaluationParameters, SourceCriticalHitChance);
+	SourceCriticalHitChance = FMath::Max<float>(SourceCriticalHitChance, 0.f);
+
+	// 获取 CriticalHitResistance 的值并存储到变量 TargetCriticalHitResistance
+	float TargetCriticalHitResistance = 0.f;
+	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatic().CriticalHitResistanceDef, EvaluationParameters, TargetCriticalHitResistance);
+	TargetCriticalHitResistance = FMath::Max<float>(TargetCriticalHitResistance, 0.f);
+
+	// 获取 CriticalHitDamage 的值并存储到变量 SourceCriticalHitDamage
+	float SourceCriticalHitDamage = 0.f;
+	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatic().CriticalHitDamageDef, EvaluationParameters, SourceCriticalHitDamage);
+	SourceCriticalHitDamage = FMath::Max<float>(SourceCriticalHitDamage, 0.f);
+
+	// 通过 CharacterClassInfo 上的 DamageCalculationCoefficients，获取暴击抗性的计算系数
+	const FRealCurve* CriticalHitResistanceCurve = CharacterClassInfo->DamageCalculationCoefficients->FindCurve(FName("CriticalHitResistance"), FString());
+	const float CriticalHitResistanceCoefficient = CriticalHitResistanceCurve->Eval(TargetCombatInterface->GetPlayerLevel());
+
+	// Critical Hit Resistance reduces Critical Hit Chance by a certain percentage
+	const float EffectiveCriticalHitChance = SourceCriticalHitChance - TargetCriticalHitResistance * CriticalHitResistanceCoefficient;
+	const bool bCriticalHit = FMath::RandRange(1, 100) < EffectiveCriticalHitChance;
+
+	// Double damage plus a bonus if critical hit
+	Damage = bCriticalHit ? Damage * 2.f + SourceCriticalHitDamage : Damage;
 
 
 	// 创建一个新的 FGameplayModifierEvaluatedData 实例，表示一个属性修改器。这里指定了要修改的属性（UAuraAttributeSet::GetIncomingDamageAttribute()）、操作类型（Additive）以及修改的值（Damage）。
