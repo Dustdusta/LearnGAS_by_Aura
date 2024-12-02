@@ -13,8 +13,9 @@ struct FAuraDamageStatic
 
 	// 使用 DECLARE_ATTRIBUTE_CAPTUREDEF 宏声明一个属性捕获定义（CaptureDef），这里针对 Armor 属性。
 	// 这个宏用于在编译时生成一些必要的元数据，以便在运行时能够识别和操作 Armor 属性。
-	DECLARE_ATTRIBUTE_CAPTUREDEF(Armor);
-	DECLARE_ATTRIBUTE_CAPTUREDEF(BlockChance);
+	DECLARE_ATTRIBUTE_CAPTUREDEF(Armor); // 捕获护甲
+	DECLARE_ATTRIBUTE_CAPTUREDEF(ArmorPenetration); // 捕获护甲穿透
+	DECLARE_ATTRIBUTE_CAPTUREDEF(BlockChance); // 捕获格挡几率
 
 
 	FAuraDamageStatic()
@@ -26,6 +27,8 @@ struct FAuraDamageStatic
 		// 第四个参数 false 表示这个捕获定义不是可选的。
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, Armor, Target, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, BlockChance, Target, false);
+
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, ArmorPenetration, Source, false);
 	}
 };
 
@@ -44,8 +47,10 @@ static const FAuraDamageStatic& DamageStatic()
 
 UExecCalc_Damage::UExecCalc_Damage()
 {
+	// 将 Armor 属性的定义添加到 RelevantAttributesToCapture 中。这意味着在执行自定义游戏效果时，系统会尝试捕获并计算该属性的值。
 	RelevantAttributesToCapture.Add(DamageStatic().ArmorDef);
 	RelevantAttributesToCapture.Add(DamageStatic().BlockChanceDef);
+	RelevantAttributesToCapture.Add(DamageStatic().ArmorPenetrationDef);
 }
 
 void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
@@ -76,14 +81,30 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 	float Damage = Spec.GetSetByCallerMagnitude(FAuraGameplayTags::Get().Damage);
 
 	// Capture BlockChance on Target, and determine if there was a successful Back
-	// If Block, halve the damage.
 	float TargetBlockChance = 0.f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatic().BlockChanceDef, EvaluationParameters, TargetBlockChance);
-	TargetBlockChance = FMath::Max<float>(TargetBlockChance,0.f);
+	TargetBlockChance = FMath::Max<float>(TargetBlockChance, 0.f);
 
-	const bool bBlocked = FMath::RandRange(1,100) < TargetBlockChance;
+	const bool bBlocked = FMath::RandRange(1, 100) < TargetBlockChance;
+	// If Block, halve the damage.
 	Damage = bBlocked ? Damage / 2.f : Damage;
-	
+
+	// 计算护甲和护甲穿透
+	// 获取 Armor 的值并存储到变量 TargetArmor
+	float TargetArmor = 0.f;
+	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatic().ArmorDef, EvaluationParameters, TargetArmor);
+	TargetArmor = FMath::Max<float>(TargetArmor, 0.f);
+
+	// 获取 ArmorPenetration 的值并存储到变量 SourceArmorPenetration
+	float SourceArmorPenetration = 0.f;
+	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatic().ArmorPenetrationDef, EvaluationParameters, SourceArmorPenetration);
+	SourceArmorPenetration = FMath::Max<float>(SourceArmorPenetration, 0.f);
+
+	// ArmorPenetration ignores a percentage of the Target's Armor
+	const float EffectiveArmor = TargetArmor *= (100 - SourceArmorPenetration * 0.25f) / 100.f;
+	// Armor ignores a percentage of incoming Damage 
+	Damage *= (100 - EffectiveArmor * 0.333f) / 100.f;
+
 
 	// 创建一个新的FGameplayModifierEvaluatedData实例，表示一个属性修改器。这里指定了要修改的属性（UAuraAttributeSet::GetIncomingDamageAttribute()）、操作类型（Additive）以及修改的值（Damage）。
 	const FGameplayModifierEvaluatedData EvaluatedData(UAuraAttributeSet::GetIncomingDamageAttribute(), EGameplayModOp::Additive, Damage);
