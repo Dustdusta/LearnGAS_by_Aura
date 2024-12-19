@@ -57,8 +57,22 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 
 		// 获取源角色的能力系统组件
 		const UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());
+
+		// 创建一个EffectContextHandle，并将其所有参数填满
+		FGameplayEffectContextHandle EffectContextHandle = SourceASC->MakeEffectContext();
+		EffectContextHandle.SetAbility(this);
+		EffectContextHandle.AddSourceObject(Projectile);
+		TArray<TWeakObjectPtr<AActor>> Actors;
+		Actors.Add(Projectile);
+		EffectContextHandle.AddActors(Actors);
+		FHitResult HitResult;
+		HitResult.Location = ProjectileTargetLocation;
+		EffectContextHandle.AddHitResult(HitResult);
+		
+
+		
 		// 创建一个游戏效果规格句柄，用于应用伤害效果
-		const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), SourceASC->MakeEffectContext());
+		const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), EffectContextHandle);
 		// 获取游戏标签实例
 		FAuraGameplayTags GameplayTags = FAuraGameplayTags::Get();
 		// 根据当前技能等级计算缩放后的伤害值
@@ -74,3 +88,32 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 		Projectile->FinishSpawning(SpawnTransform);
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+/*--------------------
+██       ██
+█ ██       ██
+█   ██       ██
+█     ██       ██
+█       ██       ██
+█         ██████████
+█       ████      ██
+█     ██  ██      ██
+█   ██    ██      ██
+█ ██      ██      ██
+██        ██      ██
+  ██      ██      ██
+	██    ██      ██
+	  ██  ██      ██
+		████      ██
+--------------------*/
