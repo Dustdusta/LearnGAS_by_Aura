@@ -3,9 +3,12 @@
 
 bool FAuraGameplayEffectContext::NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess)
 {
+	// 定义一个8位无符号整数来存储哪些成员需要被复制的信息。
 	uint32 RepBits = 0;
+	// 如果正在保存（即从服务器向客户端发送数据）
 	if (Ar.IsSaving())
 	{
+		// 检查各个成员变量是否有效，并设置RepBits相应位，表示这些成员需要被复制。
 		/*------------父类原先有的数据----------------*/
 		if (bReplicateInstigator && Instigator.IsValid())
 		{
@@ -45,9 +48,10 @@ bool FAuraGameplayEffectContext::NetSerialize(FArchive& Ar, class UPackageMap* M
 			RepBits |= 1 << 8;
 		}
 	}
-	
+	// 序列化RepBits，使用7个bit来表示上述7个条件的状态。
 	Ar.SerializeBits(&RepBits,9);
-	
+
+	// 根据RepBits的值，决定哪些成员变量需要被序列化。
 	/*------------父类原先有的数据----------------*/
 	if (RepBits & (1 << 0))
 	{
@@ -99,11 +103,12 @@ bool FAuraGameplayEffectContext::NetSerialize(FArchive& Ar, class UPackageMap* M
 		Ar << bIsCriticalHit;
 	}
 
-	
+	// 如果正在加载，则添加发起者以初始化相关的组件。
 	if (Ar.IsLoading())
 	{
 		AddInstigator(Instigator.Get(), EffectCauser.Get()); // Just to initialize InstigatorAbilitySystemComponent
 	}
+	// 设置输出参数为成功，并返回true。
 	bOutSuccess = true;
 
 	
