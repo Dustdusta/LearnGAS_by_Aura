@@ -76,11 +76,15 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 		// 获取游戏标签实例
 		FAuraGameplayTags GameplayTags = FAuraGameplayTags::Get();
 		// 根据当前技能等级计算缩放后的伤害值
-		const float ScaledDamage = Damage.GetValueAtLevel(10);
-		// 在屏幕上显示一条调试消息
-		GEngine->AddOnScreenDebugMessage(-1,3.f,FColor::Red,FString::Printf(TEXT("FireBolt Damage: %f"),ScaledDamage));
-		// 为游戏效果规格句柄分配一个由调用者设置的Damage标签，并设置伤害值为样条线Damage的对应等级的值
-		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Damage, ScaledDamage);
+		for (auto& Pair: DamageTypes)
+		{
+			const float ScaledDamage = Pair.Value.GetValueAtLevel(GetAbilityLevel());
+			// 在屏幕上显示一条调试消息
+			GEngine->AddOnScreenDebugMessage(-1,3.f,FColor::Red,FString::Printf(TEXT("FireBolt Damage: %f"),ScaledDamage));
+			
+			// 为游戏效果规格句柄分配一个由调用者设置的Damage标签，并设置伤害值为样条线Damage的对应等级的值
+			UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, Pair.Key, ScaledDamage);
+		}
 		// 将创建的游戏效果规格句柄赋值给投射物对象的DamageEffectSpecHandle属性
 		Projectile->DamageEffectSpecHandle = SpecHandle;
 
