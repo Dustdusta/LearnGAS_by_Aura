@@ -32,7 +32,7 @@ void AAuraPlayerController::PlayerTick(float DeltaTime)
 	AutoRun();
 }
 
-void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, ACharacter* TargetCharacter)
+void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, ACharacter* TargetCharacter, bool bBlockedHit, bool bCriticalHit)
 {
 	// 检查TargetCharacter是否有效（即非空且未被销毁），以及DamageTextComponentClass是否已设置。
 	if (IsValid(TargetCharacter) && DamageTextComponentClass)
@@ -46,7 +46,7 @@ void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, 
 		// 从组件上分离，但保持其在世界中的变换不变。这一步确保了即使目标角色移动，伤害数字也会停留在原位。
 		DamageText->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 		// 设置伤害文本的内容为传入的DamageAmount值。这个方法可能负责更新组件内部UI元素来显示具体的伤害数值。
-		DamageText->SetDamageText(DamageAmount);
+		DamageText->SetDamageText(DamageAmount, bBlockedHit, bCriticalHit);
 	}
 }
 
