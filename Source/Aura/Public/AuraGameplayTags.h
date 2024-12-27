@@ -37,6 +37,15 @@ public:
 	FGameplayTag Attributes_Secondary_MaxHealth;
 	FGameplayTag Attributes_Secondary_MaxMana;
 
+	/**
+	 * 伤害抵抗
+	 */
+	FGameplayTag Attributes_Resistance_Fire;
+	FGameplayTag Attributes_Resistance_Lightning;
+	FGameplayTag Attributes_Resistance_Arcane;
+	FGameplayTag Attributes_Resistance_Physical;
+
+
 	/*
 	 * Input Tags
 	 */
@@ -51,10 +60,14 @@ public:
 	 * 伤害相关 
 	 */
 	FGameplayTag Damage;
-	FGameplayTag Damage_Fire;
+	FGameplayTag Damage_Fire; // 火
+	FGameplayTag Damage_Lightning; // 电
+	FGameplayTag Damage_Arcane; // 奥术
+	FGameplayTag Damage_Physical; // 物理
 
-	TArray<FGameplayTag> DamageTypes;
-	
+
+	TMap<FGameplayTag, FGameplayTag> DamageTypesToResistance;
+
 	FGameplayTag Effect_HitReact;
 
 private:
