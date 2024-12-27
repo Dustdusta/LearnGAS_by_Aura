@@ -24,6 +24,13 @@ struct FAuraDamageStatic
 	DECLARE_ATTRIBUTE_CAPTUREDEF(CriticalHitChance); // 捕获暴击几率
 	DECLARE_ATTRIBUTE_CAPTUREDEF(CriticalHitDamage); // 捕获暴击伤害
 
+	DECLARE_ATTRIBUTE_CAPTUREDEF(FireResistance); // 捕获火焰抗性
+	DECLARE_ATTRIBUTE_CAPTUREDEF(LightningResistance); // 捕获闪电抗性
+	DECLARE_ATTRIBUTE_CAPTUREDEF(ArcaneResistance); // 捕获奥术抗性
+	DECLARE_ATTRIBUTE_CAPTUREDEF(PhysicalResistance); // 捕获物理抗性
+
+	// 建立一个map以匹配Tag和对应的捕获
+	TMap<FGameplayTag, FGameplayEffectAttributeCaptureDefinition> TagsToCaptureDefs;
 
 	FAuraDamageStatic()
 	{
@@ -39,6 +46,25 @@ struct FAuraDamageStatic
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, ArmorPenetration, Source, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, CriticalHitChance, Source, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, CriticalHitDamage, Source, false);
+
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, FireResistance, Target, false);
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, LightningResistance, Target, false);
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, ArcaneResistance, Target, false);
+		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, PhysicalResistance, Target, false);
+
+		const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
+		TagsToCaptureDefs.Add(Tags.Attributes_Secondary_Armor, ArmorDef);
+		TagsToCaptureDefs.Add(Tags.Attributes_Secondary_BlockChance, BlockChanceDef);
+		TagsToCaptureDefs.Add(Tags.Attributes_Secondary_CriticalHitResistance, CriticalHitResistanceDef);
+
+		TagsToCaptureDefs.Add(Tags.Attributes_Secondary_ArmorPenetration, ArmorPenetrationDef);
+		TagsToCaptureDefs.Add(Tags.Attributes_Secondary_CriticalHitChance, CriticalHitChanceDef);
+		TagsToCaptureDefs.Add(Tags.Attributes_Secondary_CriticalHitDamage, CriticalHitDamageDef);
+
+		TagsToCaptureDefs.Add(Tags.Attributes_Resistance_Fire, FireResistanceDef);
+		TagsToCaptureDefs.Add(Tags.Attributes_Resistance_Lightning, LightningResistanceDef);
+		TagsToCaptureDefs.Add(Tags.Attributes_Resistance_Arcane, ArcaneResistanceDef);
+		TagsToCaptureDefs.Add(Tags.Attributes_Resistance_Physical, PhysicalResistanceDef);
 	}
 };
 
@@ -65,6 +91,11 @@ UExecCalc_Damage::UExecCalc_Damage()
 	RelevantAttributesToCapture.Add(DamageStatic().ArmorPenetrationDef);
 	RelevantAttributesToCapture.Add(DamageStatic().CriticalHitChanceDef);
 	RelevantAttributesToCapture.Add(DamageStatic().CriticalHitDamageDef);
+
+	RelevantAttributesToCapture.Add(DamageStatic().FireResistanceDef);
+	RelevantAttributesToCapture.Add(DamageStatic().LightningResistanceDef);
+	RelevantAttributesToCapture.Add(DamageStatic().ArcaneResistanceDef);
+	RelevantAttributesToCapture.Add(DamageStatic().PhysicalResistanceDef);
 }
 
 void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const
@@ -97,8 +128,24 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 	float Damage = 0.f;
 	for (const TTuple<FGameplayTag, FGameplayTag>& Pair : FAuraGameplayTags::Get().DamageTypesToResistance)
 	{
+		const FGameplayTag DamageTypeTag = Pair.Key;
+		const FGameplayTag ResistanceTag = Pair.Value;
+
+		// 根据抗性类型获取捕获定义
+		// 现在已经碰到全局初始化之间依赖性的关系。本类依赖FAuraGameplayTags初始化，
+		// 但FAuraGameplayTags是在模块AssetManager启动时才进行初始化的，因此存在致命Bug!!!
+		checkf(FAuraDamageStatic().TagsToCaptureDefs.Contains(ResistanceTag), TEXT("TagsToCaptureDefs doesn't contain Tag: [%s] in ExecCalc_Damage"), *ResistanceTag.ToString());
+		const FGameplayEffectAttributeCaptureDefinition CaptureDef = FAuraDamageStatic().TagsToCaptureDefs[ResistanceTag];
+
 		// 根据伤害类型查询伤害值
-		const float DamageTypeValue = Spec.GetSetByCallerMagnitude(Pair.Key);
+		float DamageTypeValue = Spec.GetSetByCallerMagnitude(DamageTypeTag);
+
+		// 获取抗性的数值
+		float Resistance = 0.f;
+		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(CaptureDef, EvaluationParameters, Resistance);
+		Resistance = FMath::Clamp(Resistance, 0.f, 100.f);
+
+		DamageTypeValue *= (100.f - Resistance) / 100.f;
 		Damage += DamageTypeValue;
 	}
 
