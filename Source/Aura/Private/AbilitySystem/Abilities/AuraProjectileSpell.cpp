@@ -23,7 +23,10 @@ void UAuraProjectileSpell::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocation)
 {
 	const bool bIsServer = GetAvatarActorFromActorInfo()->HasAuthority();
-	// 如果不在服务器端，则不执行下面的代码
+	UE_LOG(LogTemp, Display, TEXT("GetOwningActorFromActorInfo(): %s"), *(GetOwningActorFromActorInfo()->GetName()));
+	UE_LOG(LogTemp, Display, TEXT("GetAvatarActorFromActorInfo(): %s"), *(GetAvatarActorFromActorInfo()->GetName()));
+	UE_LOG(LogTemp, Display, TEXT("bIsServer: %s"), bIsServer ? TEXT("true") : TEXT("false"));
+	// 如果在服务器端，则执行之后的代码
 	if (!bIsServer) return;
 
 	// 尝试将当前GA的AvatarActor转换为ICombatInterface接口
@@ -34,8 +37,7 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 		const FVector SocketLocation = CombatInterface->GetCombatSocketLocation();
 		// 使用目标位置和SocketLocation计算出方向
 		FRotator Rotation = (ProjectileTargetLocation - SocketLocation).Rotation();
-		//设置方向的Pitch为0，以实现方向和地面平行
-		Rotation.Pitch = 0.0f;
+		
 
 		// 创建一个FTransform对象，用来存储投射物生成时的位置和旋转信息
 		FTransform SpawnTransform;

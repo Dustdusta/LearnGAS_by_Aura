@@ -52,7 +52,7 @@ void AAuraEnemy::Die()
 	// 设置销毁时间
 	SetLifeSpan(LifeSpan);
 
-	
+
 	Super::Die();
 }
 
@@ -65,8 +65,12 @@ void AAuraEnemy::BeginPlay()
 	// 初始化AbilitySystemComponent
 	InitAbilityActorInfo();
 
-	// 调用函数库中的GiveStartupAbilities以初始化设置技能
-	UAuraAbilitySystemLibrary::GiveStartupAbilities(this,AbilitySystemComponent);
+	// 检查是否在服务器上
+	if (HasAuthority())
+	{
+		// 调用函数库中的GiveStartupAbilities以初始化设置技能
+		UAuraAbilitySystemLibrary::GiveStartupAbilities(this, AbilitySystemComponent);
+	}
 
 	if (UAuraUserWidget* AuraUserWidget = Cast<UAuraUserWidget>(HealthBar->GetUserWidgetObject()))
 	{
@@ -114,10 +118,31 @@ void AAuraEnemy::InitAbilityActorInfo()
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 	Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->AbilityActorInfoSet();
 
-	InitializeDefaultAttributes();
+	if (HasAuthority())
+	{
+		InitializeDefaultAttributes();
+	}
 }
 
 void AAuraEnemy::InitializeDefaultAttributes() const
 {
 	UAuraAbilitySystemLibrary::InitializeDefaultAttributes(this, CharacterClass, Level, AbilitySystemComponent);
 }
+
+/*--------------------
+██       ██
+█ ██       ██
+█   ██       ██
+█     ██       ██
+█       ██       ██
+█         ██████████
+█       ████      ██
+█     ██  ██      ██
+█   ██    ██      ██
+█ ██      ██      ██
+██        ██      ██
+  ██      ██      ██
+	██    ██      ██
+	  ██  ██      ██
+		████      ██
+--------------------*/

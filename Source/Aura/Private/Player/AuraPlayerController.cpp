@@ -34,8 +34,8 @@ void AAuraPlayerController::PlayerTick(float DeltaTime)
 
 void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, ACharacter* TargetCharacter, bool bBlockedHit, bool bCriticalHit)
 {
-	// 检查TargetCharacter是否有效（即非空且未被销毁），以及DamageTextComponentClass是否已设置。
-	if (IsValid(TargetCharacter) && DamageTextComponentClass)
+	// 检查TargetCharacter是否有效（即非空且未被销毁），以及DamageTextComponentClass是否已设置，以及不在服务器上
+	if (IsValid(TargetCharacter) && DamageTextComponentClass && IsLocalController())
 	{
 		// 创建一个新的UDamageTextComponent实例，使用之前指定的DamageTextComponentClass作为模板。
 		UDamageTextComponent* DamageText = NewObject<UDamageTextComponent>(TargetCharacter, DamageTextComponentClass);

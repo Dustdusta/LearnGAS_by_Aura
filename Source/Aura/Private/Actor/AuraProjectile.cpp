@@ -14,7 +14,7 @@
 
 AAuraProjectile::AAuraProjectile()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	// 设置是否允许客户端复制
 	bReplicates = true;
 
@@ -57,7 +57,8 @@ void AAuraProjectile::Destroyed()
 		// 在投射物的位置生成粒子效果
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation());
 		// 停止循环音效的播放
-		LoopingSoundComponent->Stop();
+		if (LoopingSoundComponent)
+			LoopingSoundComponent->Stop();
 	}
 	// 调用父类的Destroyed方法，完成销毁过程
 	Super::Destroyed();
@@ -65,21 +66,29 @@ void AAuraProjectile::Destroyed()
 
 void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	// 播放撞击音效
-	UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator::ZeroRotator);
-	// 生成粒子效果
-	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation());
-	// 停止循环音效的播放
-	LoopingSoundComponent->Stop();
-	
+	if (DamageEffectSpecHandle.Data.IsValid() && DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser() == OtherActor)
+		return;
+
+	if (!bHit)
+	{
+		// 播放撞击音效
+		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator::ZeroRotator);
+		// 生成粒子效果
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation());
+		// 停止循环音效的播放
+		if (LoopingSoundComponent)
+			LoopingSoundComponent->Stop();
+	}
+
+
 	// 如果是服务器端（有权威）
 	if (HasAuthority())
 	{
-		if(UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
+		if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
 		{
 			TargetASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data.Get());
 		}
-		
+
 		// 销毁投射物
 		Destroy();
 	}
@@ -89,3 +98,21 @@ void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 		bHit = true;
 	}
 }
+
+/*--------------------
+██       ██
+█ ██       ██
+█   ██       ██
+█     ██       ██
+█       ██       ██
+█         ██████████
+█       ████      ██
+█     ██  ██      ██
+█   ██    ██      ██
+█ ██      ██      ██
+██        ██      ██
+  ██      ██      ██
+	██    ██      ██
+	  ██  ██      ██
+		████      ██
+--------------------*/
