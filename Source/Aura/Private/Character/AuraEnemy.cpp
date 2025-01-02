@@ -26,6 +26,12 @@ AAuraEnemy::AAuraEnemy()
 	// 设置属性AbilitySystemComponent的网络复制模式为Minimal
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
 
+	// 设置Pawn不随Controller旋转，而是使用CharacterMovement中的bUseControllerDesiredRotation实现旋转
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
+	GetCharacterMovement()->bUseControllerDesiredRotation = true;
+
 	AttributeSet = CreateDefaultSubobject<UAuraAttributeSet>("AttributeSet");
 
 	HealthBar = CreateDefaultSubobject<UWidgetComponent>("HealthBar");
