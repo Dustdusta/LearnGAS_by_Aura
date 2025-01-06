@@ -10,7 +10,6 @@
 #include "Aura/Aura.h"
 #include "UI/Widget/AuraUserWidget.h"
 #include "AuraGameplayTags.h"
-#include "NiagaraScript.h"
 #include "AI/AuraAIController.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
@@ -45,11 +44,12 @@ void AAuraEnemy::PossessedBy(AController* NewController)
 	// AIController只在服务器上创建，客户端看到的内容都是复制的结果
 	if (HasAuthority())
 	{
+		// 通过Controller上的函数运行自身带着的BehaviorTree
 		AuraAIController = Cast<AAuraAIController>(NewController);
-
 		AuraAIController->GetBlackboardComponent()->InitializeBlackboard(*BehaviorTree->BlackboardAsset);
-		
 		AuraAIController->RunBehaviorTree(BehaviorTree);
+		AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("HitReacting"), false);
+		AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("RangedAttacker"), CharacterClass != ECharacterClass::Warrior);
 	}
 }
 
@@ -135,6 +135,9 @@ void AAuraEnemy::HitReactTagChange(const FGameplayTag CallbackTag, int32 NewCoun
 
 	// 判断bHitReacting设置最大移动速度
 	GetCharacterMovement()->MaxWalkSpeed = bHitReacting ? 0.f : BaseWalkSpeed;
+
+	// 设置黑板中的属性
+	AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("HitReacting"), bHitReacting);
 }
 
 void AAuraEnemy::InitAbilityActorInfo()
