@@ -162,10 +162,13 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 						// 在世界中绘制一个调试球体以可视化路径点
 						DrawDebugSphere(GetWorld(), PointLoc, 8.f, 8, FColor::Green, false, 5.f);
 					}
-					// 更新缓存的目的地为路径的最后一段
-					CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
-					// 设置自动运行标志为真
-					bAutoRunning = true;
+					if (NavPath->PathPoints.Num() > 0)
+					{
+						// 更新缓存的目的地为路径的最后一段
+						CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
+						// 设置自动运行标志为真
+						bAutoRunning = true;
+					}
 				}
 			}
 		}
