@@ -65,7 +65,11 @@ public:
 	FGameplayTag Damage_Arcane; // 奥术
 	FGameplayTag Damage_Physical; // 物理
 
-
+	/**
+	 * 可以攻击能力
+	 */
+	FGameplayTag Abilities_Attack;
+	
 	TMap<FGameplayTag, FGameplayTag> DamageTypesToResistance;
 
 	FGameplayTag Effect_HitReact;

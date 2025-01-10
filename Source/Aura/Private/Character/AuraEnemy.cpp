@@ -94,7 +94,7 @@ void AAuraEnemy::BeginPlay()
 	if (HasAuthority())
 	{
 		// 调用函数库中的GiveStartupAbilities以初始化设置技能
-		UAuraAbilitySystemLibrary::GiveStartupAbilities(this, AbilitySystemComponent);
+		UAuraAbilitySystemLibrary::GiveStartupAbilities(this, AbilitySystemComponent, CharacterClass);
 	}
 
 	if (UAuraUserWidget* AuraUserWidget = Cast<UAuraUserWidget>(HealthBar->GetUserWidgetObject()))
