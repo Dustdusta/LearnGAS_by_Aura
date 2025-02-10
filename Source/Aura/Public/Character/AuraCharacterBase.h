@@ -26,13 +26,20 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
+	
+	/*---------------继承自ICombatInterface的函数-----------------------*/
 	virtual UAnimMontage* GetHitReactMontage_Implementation() override;
-
 	/**
-	 * 处理死亡时发生的事情的函数
-	 */
+     * 处理死亡时发生的事情的函数
+     */
 	virtual void Die() override;
+	
+	virtual FVector GetCombatSocketLocation_Implementation() override;
+	virtual bool IsDead_Implementation() const override;
+	virtual AActor* GetAvatar_Implementation() override;
+	/*----------------------------------------------------------------*/
 
+	
 	/**
 	 * NetMulticast - 判定死亡时调用的多播，在服务器和客户端上都执行。对应的实现函数会添加_Implementation后缀。\n
 	 * Reliable - 并指定函数为“可靠的”，当遇见网络错误时会重发以保证到达。一般用在逻辑关键的函数上。
@@ -50,8 +57,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	FName WeaponTipSocketName;
 
-	virtual FVector GetCombatSocketLocation_Implementation() override;
-
+	bool bDead = false;
+	
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
