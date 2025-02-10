@@ -203,7 +203,14 @@ void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& Props, float D
 	// 源角色和目标角色不同的时候
 	if (Props.SourceCharacter != Props.TargetCharacter)
 	{
+		// 伤害来源是Aura时
 		if (AAuraPlayerController* PC = Cast<AAuraPlayerController>(Props.SourceCharacter->Controller))
+		{
+			PC->ShowDamageNumber(Damage, Props.TargetCharacter, bBlockedHit, bCriticalHit);
+			return;
+		}
+		// 伤害来源是敌人时
+		if (AAuraPlayerController* PC = Cast<AAuraPlayerController>(Props.TargetCharacter->Controller))
 		{
 			PC->ShowDamageNumber(Damage, Props.TargetCharacter, bBlockedHit, bCriticalHit);
 		}
