@@ -141,7 +141,7 @@ void AAuraEnemy::BeginPlay()
 // 当GameplayTag：Effect_HitReact发生新增和移除时，调用函数HitReactTagChange()
 void AAuraEnemy::HitReactTagChange(const FGameplayTag CallbackTag, int32 NewCount)
 {
-	if (AuraAIController && AuraAIController->GetBlackboardComponent())// 此函数会在客户端和服务器上都调用，因客户端无Controller，故做判断
+	if (AuraAIController && AuraAIController->GetBlackboardComponent())// 此函数会在客户端和服务器上都调用，因客户端无AIController，故做判断
 	{
 		bHitReacting = NewCount > 0;
 

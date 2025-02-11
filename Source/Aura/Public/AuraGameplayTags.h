@@ -69,6 +69,13 @@ public:
 	 * 可以攻击能力
 	 */
 	FGameplayTag Abilities_Attack;
+
+	/**
+	 * 标记攻击蒙太奇的类型
+	 */
+	FGameplayTag Montage_Attack_Weapon;
+	FGameplayTag Montage_Attack_RightHand;
+	FGameplayTag Montage_Attack_LeftHand;
 	
 	TMap<FGameplayTag, FGameplayTag> DamageTypesToResistance;
 
