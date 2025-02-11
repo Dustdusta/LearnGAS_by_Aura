@@ -141,13 +141,16 @@ void AAuraEnemy::BeginPlay()
 // 当GameplayTag：Effect_HitReact发生新增和移除时，调用函数HitReactTagChange()
 void AAuraEnemy::HitReactTagChange(const FGameplayTag CallbackTag, int32 NewCount)
 {
-	bHitReacting = NewCount > 0;
+	if (AuraAIController && AuraAIController->GetBlackboardComponent())// 此函数会在客户端和服务器上都调用，因客户端无Controller，故做判断
+	{
+		bHitReacting = NewCount > 0;
 
-	// 判断bHitReacting设置最大移动速度
-	GetCharacterMovement()->MaxWalkSpeed = bHitReacting ? 0.f : BaseWalkSpeed;
+		// 判断bHitReacting设置最大移动速度
+		GetCharacterMovement()->MaxWalkSpeed = bHitReacting ? 0.f : BaseWalkSpeed;
 
-	// 设置黑板中的属性
-	AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("HitReacting"), bHitReacting);
+		// 设置黑板中的属性
+		AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("HitReacting"), bHitReacting);
+	}
 }
 
 void AAuraEnemy::InitAbilityActorInfo()
