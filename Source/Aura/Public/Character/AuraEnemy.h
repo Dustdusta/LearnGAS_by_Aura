@@ -60,7 +60,7 @@ public:
 	/**
 	 * 角色基础移动速度
 	 */
-	UPROPERTY(BlueprintReadOnly, Category = "Combat")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	float BaseWalkSpeed = 250.f;
 
 	/**
