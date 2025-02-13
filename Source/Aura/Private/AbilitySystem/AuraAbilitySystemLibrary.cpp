@@ -142,26 +142,45 @@ void UAuraAbilitySystemLibrary::SetIsCriticalHit(FGameplayEffectContextHandle& E
 
 void UAuraAbilitySystemLibrary::GetLivePlayerWithinRadius(const UObject* WorldContextObject, TArray<AActor*>& OutOverlappingActors, const TArray<AActor*>& ActorsToIgnore, float Radius, const FVector& SphereOrigin)
 {
+	// 设置碰撞检测参数，添加需要忽略的Actor
 	FCollisionQueryParams SphereParams;
 	SphereParams.AddIgnoredActors(ActorsToIgnore);
 
-	if (const UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull))
+	if (const UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull))// 获取有效的世界对象
 	{
+		// 存储重叠检测结果的数组
 		TArray<FOverlapResult> Overlaps;
+		// 执行球形范围检测：
+		// - 检测所有动态物体（AllDynamicObjects）
+		// - 使用球形碰撞形状（半径由参数指定）
+		// - 应用之前设置的忽略参数
 		World->OverlapMultiByObjectType(Overlaps,
 		                                SphereOrigin,
 		                                FQuat::Identity,
 		                                FCollisionObjectQueryParams(FCollisionObjectQueryParams::InitType::AllDynamicObjects),
 		                                FCollisionShape::MakeSphere(Radius),
 		                                SphereParams);
+		// 遍历所有检测到的重叠结果
 		for (FOverlapResult& Overlap : Overlaps)
 		{
+			// 双重验证：
+			// 1. 检查Actor是否实现了战斗接口（UCombatInterface）
+			// 2. 通过接口方法检查Actor是否存活
 			if (Overlap.GetActor()->Implements<UCombatInterface>()/*判断是否继承接口，若不是直接中止判断*/&& !ICombatInterface::Execute_IsDead(Overlap.GetActor())) // 继承了接口及没有死
 			{
+				// 通过接口获取实际角色Avatar并添加到输出结果中
 				OutOverlappingActors.AddUnique(ICombatInterface::Execute_GetAvatar(Overlap.GetActor()));
 			}
 		}
 	}
+}
+
+bool UAuraAbilitySystemLibrary::IsNotFriend(AActor* FirstActor, AActor* SecondActor)
+{
+	const bool bBothArePlayers = FirstActor->ActorHasTag(FName("Player")) && SecondActor->ActorHasTag(FName("Player"));
+	const bool bBothAreEnemies = FirstActor->ActorHasTag(FName("Enemy")) && SecondActor->ActorHasTag(FName("Enemy"));
+	const bool bFriends = bBothArePlayers || bBothAreEnemies;
+	return !bFriends;
 }
 
 
