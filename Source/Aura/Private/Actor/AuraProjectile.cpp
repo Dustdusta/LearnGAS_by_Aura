@@ -67,13 +67,17 @@ void AAuraProjectile::Destroyed()
 
 void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (DamageEffectSpecHandle.Data.IsValid() && DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser() == OtherActor)
+	// 首先检查DamageEffectSpecHandle是否有效以及效果施加者是否不是与之重叠的OtherActor。
+	// 如果DamageEffectSpecHandle无效或者两者是同一个对象，则直接返回，不执行后续逻辑。
+	if (!DamageEffectSpecHandle.Data.IsValid() || DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser() == OtherActor)
 		return;
 
+	// 调用UAuraAbilitySystemLibrary::IsNotFriend方法来判断两个角色是否不是朋友关系。
+	// 这里假设IsNotFriend方法会返回一个布尔值，表示两个角色是否为敌对关系。
+	// 如果这两个角色实际上是友方，则同样直接返回，避免对友方造成伤害或影响。
 	if (!UAuraAbilitySystemLibrary::IsNotFriend(DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser(), OtherActor))
-	{
 		return;
-	}
+	
 	if (!bHit)
 	{
 		// 播放撞击音效
