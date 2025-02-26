@@ -86,8 +86,10 @@ void AAuraEnemy::Die()
 {
 	// 设置销毁时间
 	SetLifeSpan(LifeSpan);
-
-
+	// 设置AI黑板中的Dead变量
+	if (AuraAIController)
+		AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("Dead"), true);
+	
 	Super::Die();
 }
 
