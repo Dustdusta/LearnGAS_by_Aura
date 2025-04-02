@@ -71,11 +71,19 @@ public:
 	FGameplayTag Abilities_Attack;
 
 	/**
-	 * 标记攻击蒙太奇的类型
+	 * 标记攻击的类型
 	 */
-	FGameplayTag Montage_Attack_Weapon;
-	FGameplayTag Montage_Attack_RightHand;
-	FGameplayTag Montage_Attack_LeftHand;
+	FGameplayTag CombatSocket_Weapon;
+	FGameplayTag CombatSocket_RightHand;
+	FGameplayTag CombatSocket_LeftHand;
+
+	/**
+	 * 标记攻击的蒙太奇的类型
+	 */
+	FGameplayTag Montage_Attack_1;
+	FGameplayTag Montage_Attack_2;
+	FGameplayTag Montage_Attack_3;
+	FGameplayTag Montage_Attack_4;
 	
 	TMap<FGameplayTag, FGameplayTag> DamageTypesToResistance;
 

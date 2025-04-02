@@ -31,7 +31,7 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 
 
 	// 从ICombatInterface接口获取战斗相关的SocketLocation，这通常是武器或者角色身体上某个特定点的位置
-	const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(GetAvatarActorFromActorInfo(), FAuraGameplayTags::Get().Montage_Attack_Weapon);
+	const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(GetAvatarActorFromActorInfo(), FAuraGameplayTags::Get().CombatSocket_Weapon);
 	// 使用目标位置和SocketLocation计算出方向
 	FRotator Rotation = (ProjectileTargetLocation - SocketLocation).Rotation();
 
