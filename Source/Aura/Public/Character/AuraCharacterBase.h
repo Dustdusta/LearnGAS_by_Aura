@@ -121,8 +121,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UMaterialInstance> WeaponDissolveMaterialInstance;
 
+	// 受击的血液溅射特效
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	UNiagaraSystem* BloodEffect;
+
+	// 死亡时音效
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	USoundBase* DeathSound;
 private:
 	// 新增初始化时添加的GA列表
 	UPROPERTY(EditAnywhere, Category = "Abilities")

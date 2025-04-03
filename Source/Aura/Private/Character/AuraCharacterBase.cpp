@@ -7,6 +7,7 @@
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Aura/Aura.h"
 #include "Components/CapsuleComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 AAuraCharacterBase::AAuraCharacterBase()
 {
@@ -47,6 +48,9 @@ void AAuraCharacterBase::Die()
 
 void AAuraCharacterBase::MulticastHandleDeath_Implementation()
 {
+	// 播放死亡时音效
+	UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation(), GetActorRotation());
+	
 	// 使角色成为布娃娃状态
 	// 使武器开启物理状态
 	// 启用模拟物理
