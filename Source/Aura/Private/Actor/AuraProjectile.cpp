@@ -60,6 +60,7 @@ void AAuraProjectile::Destroyed()
 		// 停止循环音效的播放
 		if (LoopingSoundComponent)
 			LoopingSoundComponent->Stop();
+		bHit = true;
 	}
 	// 调用父类的Destroyed方法，完成销毁过程
 	Super::Destroyed();
@@ -87,6 +88,8 @@ void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 		// 停止循环音效的播放
 		if (LoopingSoundComponent)
 			LoopingSoundComponent->Stop();
+		// 使用bHit避免重复播放
+		bHit = true;
 	}
 
 
