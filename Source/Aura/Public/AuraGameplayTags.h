@@ -76,6 +76,7 @@ public:
 	FGameplayTag CombatSocket_Weapon;
 	FGameplayTag CombatSocket_RightHand;
 	FGameplayTag CombatSocket_LeftHand;
+	FGameplayTag CombatSocket_Tail;
 
 	/**
 	 * 标记攻击的蒙太奇的类型

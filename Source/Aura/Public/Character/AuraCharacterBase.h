@@ -61,14 +61,16 @@ protected:
 	// 创建一个指向USkeletalMeshComponent类的智能指针，用于存储武器组件实例
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	TObjectPtr<USkeletalMeshComponent> Weapon;
+	
 	// 存储武器插槽的名字以方便获取插槽的位置
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	FName WeaponTipSocketName;
-
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	FName LeftHandSocketName;
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	FName RightHandSocketName;
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	FName TailSocketName;
 
 	bool bDead = false;
 
