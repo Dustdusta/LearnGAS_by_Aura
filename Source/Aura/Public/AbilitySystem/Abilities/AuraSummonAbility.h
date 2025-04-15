@@ -27,9 +27,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category="Summoning")
 	TArray<TSubclassOf<APawn>> MinionClasses;
 
-	// 召唤的最大最小的位置
+	// 召唤的最小的位置
 	UPROPERTY(EditDefaultsOnly, Category="Summoning")
 	float MinSpawnDistance = 50.0f;
+	// 召唤的最大的位置
 	UPROPERTY(EditDefaultsOnly, Category="Summoning")
 	float MaxSpawnDistance = 250.0f;
 
