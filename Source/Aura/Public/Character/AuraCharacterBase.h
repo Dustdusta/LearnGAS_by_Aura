@@ -41,6 +41,7 @@ public:
 	virtual TArray<FTaggedMontage> GetAttackMontages_Implementation() override;
 	virtual UNiagaraSystem* GetBloodEffect_Implementation() override;
 	virtual FTaggedMontage GetTaggedMontageByTag_Implementation(const FGameplayTag& MontageTag) override;
+	virtual int32 GetMinionCount_Implementation() override;
 	/*----------------------------------------------------------------*/
 
 
@@ -130,6 +131,14 @@ protected:
 	// 死亡时音效
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	USoundBase* DeathSound;
+
+	/* Minions */
+
+	int32 MinionCount = 0;
+
+	
+
+	
 private:
 	// 新增初始化时添加的GA列表
 	UPROPERTY(EditAnywhere, Category = "Abilities")

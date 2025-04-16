@@ -69,6 +69,7 @@ public:
 	 * 可以攻击能力
 	 */
 	FGameplayTag Abilities_Attack;
+	FGameplayTag Abilities_Summon;
 
 	/**
 	 * 标记攻击的类型
