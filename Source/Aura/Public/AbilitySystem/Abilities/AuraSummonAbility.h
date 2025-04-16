@@ -19,6 +19,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	TArray<FVector> GetSpawnLocations();
 
+	// 随机获取一个召唤的类
+	UFUNCTION(BlueprintPure, Category="Summoning")
+	TSubclassOf<APawn> GetRandomMinionClass();
+	
 	// 召唤的数量
 	UPROPERTY(EditDefaultsOnly, Category="Summoning")
 	int32 NumMinions = 5;
@@ -37,4 +41,5 @@ public:
 	// 召唤的扇面角度
 	UPROPERTY(EditDefaultsOnly, Category="Summoning")
 	float SpawnSpread = 90.0f;
+
 };
