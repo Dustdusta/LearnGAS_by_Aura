@@ -138,7 +138,7 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 		const FGameplayEffectAttributeCaptureDefinition CaptureDef = FAuraDamageStatic().TagsToCaptureDefs[ResistanceTag];
 
 		// 根据伤害类型查询伤害值
-		float DamageTypeValue = Spec.GetSetByCallerMagnitude(DamageTypeTag);
+		float DamageTypeValue = Spec.GetSetByCallerMagnitude(DamageTypeTag, false);
 
 		// 获取抗性的数值
 		float Resistance = 0.f;
