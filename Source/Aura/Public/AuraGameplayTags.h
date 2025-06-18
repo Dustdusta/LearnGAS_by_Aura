@@ -66,11 +66,14 @@ public:
 	FGameplayTag Damage_Physical; // 物理
 
 	/**
-	 * 可以攻击能力
+	 * 技能列表
 	 */
 	FGameplayTag Abilities_Attack;
 	FGameplayTag Abilities_Summon;
 
+
+	FGameplayTag Abilities_Fire_FireBolt;
+	
 	/**
 	 * 标记攻击的类型
 	 */

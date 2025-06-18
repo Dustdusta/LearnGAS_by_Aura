@@ -167,6 +167,10 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 	GameplayTags.Abilities_Summon = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Abilities.Summon"),
 		FString("Summon Ability Tag"));
+	
+	GameplayTags.Abilities_Fire_FireBolt = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Fire.FireBolt"),
+		FString("FireBolt Ability Tag"));
 
 
 	/*
@@ -197,16 +201,16 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 		FString("Attack 1"));
 
 	GameplayTags.Montage_Attack_2 = UGameplayTagsManager::Get().AddNativeGameplayTag(
-	FName("Montage.Attack.2"),
-	FString("Attack 2"));
+		FName("Montage.Attack.2"),
+		FString("Attack 2"));
 
 	GameplayTags.Montage_Attack_3 = UGameplayTagsManager::Get().AddNativeGameplayTag(
-	FName("Montage.Attack.3"),
-	FString("Attack 3"));
-	
+		FName("Montage.Attack.3"),
+		FString("Attack 3"));
+
 	GameplayTags.Montage_Attack_4 = UGameplayTagsManager::Get().AddNativeGameplayTag(
-	FName("Montage.Attack.4"),
-	FString("Attack 4"));
+		FName("Montage.Attack.4"),
+		FString("Attack 4"));
 }
 
 /*--------------------
