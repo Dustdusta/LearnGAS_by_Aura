@@ -9,6 +9,7 @@
 // 声明委托类型
 DECLARE_MULTICAST_DELEGATE_OneParam(FEffectAssetTags, const FGameplayTagContainer& /*AssetTags*/)
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FAbilitiesGiven, UAuraAbilitySystemComponent*); // 广播技能信息给OverlayWidgetController
 
 /**
  * 
@@ -24,8 +25,11 @@ public:
 	// 声明委托变量
 	FEffectAssetTags EffectAssetTags;
 
+	FAbilitiesGiven AbilitiesGivenDelegate;
+
 	// 向角色新增GA
 	void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities);
+	bool bStartupAbilitiesGiven = false; // 记录技能是否有被赋予
 
 	void AbilityInputTagHeld(const FGameplayTag& InputTag);
 	void AbilityInputTagReleased(const FGameplayTag& InputTag);
