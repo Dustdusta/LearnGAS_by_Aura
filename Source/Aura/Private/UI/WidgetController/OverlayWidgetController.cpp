@@ -5,6 +5,7 @@
 
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
+#include "AbilitySystem/Data/AbilityInfo.h"
 
 void UOverlayWidgetController::BroadcastInitialValues()
 {
@@ -77,11 +78,24 @@ void UOverlayWidgetController::BindCallbackToDependencies()
 
 void UOverlayWidgetController::OnInitializeStartupAbilities(UAuraAbilitySystemComponent* AuraAbilitySystemComponent)
 {
-	//AURATODO: Get information about all given abilities, look up their Ability Info, and broadcast it to widgets.
+	//Get information about all given abilities, look up their Ability Info, and broadcast it to widgets.
 	if (!AuraAbilitySystemComponent->bStartupAbilitiesGiven) return;// 如果技能没有被赋予，则不执行后续逻辑
 
-	
-	
+	// 声明一个用于遍历技能的委托对象
+	FForEachAbility BroadcastDelegate;
+	// 使用Lambda函数绑定委托（捕获当前控制器和技能组件）
+	BroadcastDelegate.BindLambda([this, AuraAbilitySystemComponent](const FGameplayAbilitySpec& AbilitySpec)
+	{
+		// 通过技能标签获取完整的技能信息结构体
+		FAuraAbilityInfo Info = AbilityInfo->FindAbilityInfoForTag(AuraAbilitySystemComponent->GetAbilityTagFromSpec(AbilitySpec)/* 从技能规格获取技能标签 */, true);
+		// 补充输入标签信息
+		Info.InputTag = AuraAbilitySystemComponent->GetInputTagFromSpec(AbilitySpec);
+		// 广播包含完整信息的委托
+		AbilityInfoDelegate.Broadcast(Info);
+	});
+
+	// 在技能组件上执行委托：遍历所有技能并触发广播
+	AuraAbilitySystemComponent->ForEachAbility(BroadcastDelegate);
 }
 
 

@@ -11,6 +11,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FEffectAssetTags, const FGameplayTagContaine
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FAbilitiesGiven, UAuraAbilitySystemComponent*); // 广播技能信息给OverlayWidgetController
 
+DECLARE_DELEGATE_OneParam(FForEachAbility, const FGameplayAbilitySpec&); // 广播循环获取的技能规格
 /**
  * 
  */
@@ -29,10 +30,15 @@ public:
 
 	// 向角色新增GA
 	void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities);
-	bool bStartupAbilitiesGiven = false; // 记录技能是否有被赋予
+	bool bStartupAbilitiesGiven = false; // 记录所有技能是否有被赋予
 
 	void AbilityInputTagHeld(const FGameplayTag& InputTag);
 	void AbilityInputTagReleased(const FGameplayTag& InputTag);
+	
+	void ForEachAbility(const FForEachAbility& Delegate);// 遍历已经激活的技能以启动代理
+
+	static FGameplayTag GetAbilityTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
+	static FGameplayTag GetInputTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 
 protected:
 	// 使得这个函数能在客户端上被调用
