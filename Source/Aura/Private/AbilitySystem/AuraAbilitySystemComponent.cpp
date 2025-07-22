@@ -30,8 +30,7 @@ void UAuraAbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassOf
 		}
 	}
 	bStartupAbilitiesGiven = true;
-	AbilitiesGivenDelegate.Broadcast(this);// 当能力被赋予时，广播
-	
+	AbilitiesGivenDelegate.Broadcast(this); // 当能力被赋予时，广播
 }
 
 void UAuraAbilitySystemComponent::AbilityInputTagHeld(const FGameplayTag& InputTag)
@@ -74,12 +73,11 @@ void UAuraAbilitySystemComponent::ForEachAbility(const FForEachAbility& Delegate
 	// 循环遍历所有可激活的能力
 	for (const FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
-		if (Delegate.ExecuteIfBound(AbilitySpec))// 执行委托
+		if (Delegate.ExecuteIfBound(AbilitySpec)) // 执行委托
 		{
 			// 如果委托未绑定
 			UE_LOG(LogAura, Error, TEXT("Failed to execute delegate in %hs"), __FUNCTION__);
 		}
-		
 	}
 }
 
@@ -100,14 +98,11 @@ FGameplayTag UAuraAbilitySystemComponent::GetAbilityTagFromSpec(const FGameplayA
 
 FGameplayTag UAuraAbilitySystemComponent::GetInputTagFromSpec(const FGameplayAbilitySpec& AbilitySpec)
 {
-	if (AbilitySpec.Ability)
+	for (FGameplayTag InputTag : AbilitySpec.DynamicAbilityTags)
 	{
-		for (FGameplayTag Tag : AbilitySpec.DynamicAbilityTags)
+		if (InputTag.MatchesTag(FGameplayTag::RequestGameplayTag(FName("InputTag"))))
 		{
-			if (Tag.MatchesTag(FGameplayTag::RequestGameplayTag(FName("Input"))))
-			{
-				return Tag;
-			}
+			return InputTag;
 		}
 	}
 	return FGameplayTag();
