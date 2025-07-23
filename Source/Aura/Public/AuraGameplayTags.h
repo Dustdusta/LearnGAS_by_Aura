@@ -73,6 +73,7 @@ public:
 
 
 	FGameplayTag Abilities_Fire_FireBolt;
+	FGameplayTag Cooldown_Fire_FireBolt;
 	
 	/**
 	 * 标记攻击的类型
