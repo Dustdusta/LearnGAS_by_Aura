@@ -6,6 +6,8 @@
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/AbilityInfo.h"
+#include "AbilitySystem/Data/LevelUpInfo.h"
+#include "Player/AuraPlayerState.h"
 
 void UOverlayWidgetController::BroadcastInitialValues()
 {
@@ -20,6 +22,10 @@ void UOverlayWidgetController::BroadcastInitialValues()
 
 void UOverlayWidgetController::BindCallbackToDependencies()
 {
+	AAuraPlayerState* AuraPlayerState = CastChecked<AAuraPlayerState>(PlayerState);
+	AuraPlayerState->OnXPChangedDelegate.AddUObject(this, &UOverlayWidgetController::OnXPChanged);
+
+
 	const UAuraAttributeSet* AuraAttributeSet = CastChecked<UAuraAttributeSet>(AttributeSet);
 
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
@@ -50,7 +56,7 @@ void UOverlayWidgetController::BindCallbackToDependencies()
 
 	if (UAuraAbilitySystemComponent* AuraASC = Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent))
 	{
-		if (AuraASC->bStartupAbilitiesGiven)// 技能被赋予了就直接执行初始化，没有就等待委托的广播
+		if (AuraASC->bStartupAbilitiesGiven) // 技能被赋予了就直接执行初始化，没有就等待委托的广播
 		{
 			OnInitializeStartupAbilities(AuraASC);
 		}
@@ -79,7 +85,7 @@ void UOverlayWidgetController::BindCallbackToDependencies()
 void UOverlayWidgetController::OnInitializeStartupAbilities(UAuraAbilitySystemComponent* AuraAbilitySystemComponent)
 {
 	//Get information about all given abilities, look up their Ability Info, and broadcast it to widgets.
-	if (!AuraAbilitySystemComponent->bStartupAbilitiesGiven) return;// 如果技能没有被赋予，则不执行后续逻辑
+	if (!AuraAbilitySystemComponent->bStartupAbilitiesGiven) return; // 如果技能没有被赋予，则不执行后续逻辑
 
 	// 声明一个用于遍历技能的委托对象
 	FForEachAbility BroadcastDelegate;
@@ -98,4 +104,25 @@ void UOverlayWidgetController::OnInitializeStartupAbilities(UAuraAbilitySystemCo
 	AuraAbilitySystemComponent->ForEachAbility(BroadcastDelegate);
 }
 
+void UOverlayWidgetController::OnXPChanged(int32 NewXP) const
+{
+	const AAuraPlayerState* AuraPlayerState = CastChecked<AAuraPlayerState>(PlayerState);
+	const ULevelUpInfo* LevelUpInfo = AuraPlayerState->LevelUpInfo;
+	checkf(LevelUpInfo, TEXT("Unabled to find LevelUpInfo. Please fill out AuraPlayerState Blueprint."));
 
+	const int32 Level = LevelUpInfo->FindLevelForXP(NewXP);
+	const int32 MaxLevel = LevelUpInfo->LevelUpInformation.Num();
+
+	if (Level <= MaxLevel && Level > 0)
+	{
+		const int32 LevelUpRequirement = LevelUpInfo->LevelUpInformation[Level].LevelUpRequirement;
+		const int32 PreviousLevelUpRequirement = LevelUpInfo->LevelUpInformation[Level - 1].LevelUpRequirement;
+
+		const int32 DeltaLevelRequirement = LevelUpRequirement - PreviousLevelUpRequirement;
+		const int32 XPForThisLevel = NewXP = PreviousLevelUpRequirement;
+
+		const float XPBarPrecent = static_cast<float>(XPForThisLevel) / static_cast<float>(DeltaLevelRequirement);
+
+		OnXPPercentChangedDelegate.Broadcast(XPBarPrecent);
+	}
+}
