@@ -222,6 +222,11 @@ public:
 	// 使用宏添加属性访问器
 	ATTRIBUTE_ACCESSORS(UAuraAttributeSet, IncomingDamage);
 
+	UPROPERTY(BlueprintReadOnly, Category="Meta Attributes")
+	FGameplayAttributeData IncomingXP;
+	// 使用宏添加属性访问器
+	ATTRIBUTE_ACCESSORS(UAuraAttributeSet, IncomingXP);
+	
 #pragma endregion
 
 private:

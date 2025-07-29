@@ -45,6 +45,10 @@ public:
 	FGameplayTag Attributes_Resistance_Arcane;
 	FGameplayTag Attributes_Resistance_Physical;
 
+	/**
+	 * 即将到来的经验值
+	 */
+	FGameplayTag Attributes_Meta_IncomingXP;
 
 	/*
 	 * Input Tags

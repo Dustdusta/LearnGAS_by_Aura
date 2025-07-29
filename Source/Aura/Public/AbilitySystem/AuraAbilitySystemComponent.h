@@ -30,6 +30,7 @@ public:
 
 	// 向角色新增GA
 	void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities);
+	void AddCharacterPassiveAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupPassiveAbilities);
 	bool bStartupAbilitiesGiven = false; // 记录所有技能是否有被赋予
 
 	void AbilityInputTagHeld(const FGameplayTag& InputTag);
