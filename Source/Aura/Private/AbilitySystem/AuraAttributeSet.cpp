@@ -34,7 +34,7 @@ UAuraAttributeSet::UAuraAttributeSet()
 	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_ManaRegenRate, GetManaRegenerationAttribute);
 	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_MaxHealth, GetMaxHealthAttribute);
 	TagsToAttributes.Add(GameplayTags.Attributes_Secondary_MaxMana, GetMaxManaAttribute);
-	
+
 	/* Resistance Attributes */
 	TagsToAttributes.Add(GameplayTags.Attributes_Resistance_Fire, GetFireResistanceAttribute);
 	TagsToAttributes.Add(GameplayTags.Attributes_Resistance_Lightning, GetLightningResistanceAttribute);
@@ -180,6 +180,7 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 				{
 					CombatInterface->Die();
 				}
+				SendXPEvent(Props);
 			}
 			// 如果不是致命伤害，激活击中受击技能
 			else
@@ -200,7 +201,22 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 	{
 		const float LocalIncomingXP = GetIncomingXP();
 		SetIncomingXP(0.f);
-		UE_LOG(LogAura, Log, TEXT("Incoming XP: %f"), LocalIncomingXP);
+	}
+}
+
+void UAuraAttributeSet::SendXPEvent(const FEffectProperties& Props)
+{
+	if (ICombatInterface* CombatInterface = Cast<ICombatInterface>(Props.TargetCharacter))
+	{
+		const int32 TargetLevel = CombatInterface->GetPlayerLevel();
+		const ECharacterClass TargetClass = ICombatInterface::Execute_GetCharacterClass(Props.TargetCharacter);
+		const int32 XPReward = UAuraAbilitySystemLibrary::GetXPRewardForClassAndLevel(Props.TargetCharacter, TargetClass, TargetLevel);
+
+		const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+		FGameplayEventData Payload;
+		Payload.EventTag = GameplayTags.Attributes_Meta_IncomingXP;
+		Payload.EventMagnitude = XPReward;
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Props.SourceCharacter, GameplayTags.Attributes_Meta_IncomingXP, Payload);
 	}
 }
 
