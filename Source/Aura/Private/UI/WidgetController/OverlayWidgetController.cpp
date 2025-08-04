@@ -119,7 +119,7 @@ void UOverlayWidgetController::OnXPChanged(int32 NewXP) const
 		const int32 PreviousLevelUpRequirement = LevelUpInfo->LevelUpInformation[Level - 1].LevelUpRequirement;
 
 		const int32 DeltaLevelRequirement = LevelUpRequirement - PreviousLevelUpRequirement;
-		const int32 XPForThisLevel = NewXP = PreviousLevelUpRequirement;
+		const int32 XPForThisLevel = NewXP - PreviousLevelUpRequirement;
 
 		const float XPBarPrecent = static_cast<float>(XPForThisLevel) / static_cast<float>(DeltaLevelRequirement);
 
