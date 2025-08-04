@@ -33,8 +33,11 @@ float UMMC_MaxMana::CalculateBaseMagnitude_Implementation(const FGameplayEffectS
 	Intelligence = FMath::Max<float>(Intelligence, 0.f);
 
 	// 尝试将GE的来源对象转换为ICombatInterface接口，以便访问玩家等级信息
-	ICombatInterface* CombatInterface = Cast<ICombatInterface>(Spec.GetContext().GetSourceObject());
-	const int32 PlayerLevel = CombatInterface->GetPlayerLevel();
+	int32 PlayerLevel = 1;
+	if (Spec.GetContext().GetSourceObject()->Implements<UCombatInterface>())
+	{
+		PlayerLevel = ICombatInterface::Execute_GetPlayerLevel(Spec.GetContext().GetSourceObject());
+	}
 
 	return 50.f + 2.5f * Intelligence + 15.f + PlayerLevel;
 }
