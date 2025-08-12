@@ -4,15 +4,32 @@
 #include "Character/AuraCharacter.h"
 
 #include "AbilitySystemComponent.h"
+#include "NiagaraComponent.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/Data/LevelUpInfo.h"
+#include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "Player/AuraPlayerController.h"
 #include "Player/AuraPlayerState.h"
 #include "UI/HUD/AuraHUD.h"
 
 AAuraCharacter::AAuraCharacter()
 {
+	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+	CameraBoom->SetupAttachment(RootComponent);
+	CameraBoom->SetUsingAbsoluteRotation(true);
+	CameraBoom->bDoCollisionTest = false;
+
+	TopDownCameraComponent  = CreateDefaultSubobject<UCameraComponent>("TopDownCameraComponent");
+	TopDownCameraComponent->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+	TopDownCameraComponent->bUsePawnControlRotation = false;
+	
+	
+	LevelUpNaigaraComponent = CreateDefaultSubobject<UNiagaraComponent>("LevelUpNiagaraComponent");
+	LevelUpNaigaraComponent->SetupAttachment(GetRootComponent());
+	LevelUpNaigaraComponent->bAutoActivate = false;
+
 	// 设置角色移动时的朝向，使其自动根据移动方向调整朝向
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	// 设置角色的旋转速率，以便快速响应移动方向的变化
@@ -56,9 +73,23 @@ void AAuraCharacter::AddToXP_Implementation(int32 InXP)
 
 void AAuraCharacter::LevelUp_Implementation()
 {
-	
+	MulticastLevelUpParticles();
 	
 }
+
+
+void AAuraCharacter::MulticastLevelUpParticles_Implementation() const
+{
+	if (IsValid(LevelUpNaigaraComponent))
+	{
+		const FVector CameraLocation = TopDownCameraComponent->GetComponentLocation();
+		const FVector NiagaraSystemLocation = LevelUpNaigaraComponent->GetComponentLocation();
+		const FRotator ToCameraRotation =  (CameraLocation - NiagaraSystemLocation).Rotation();
+		LevelUpNaigaraComponent->SetWorldRotation(ToCameraRotation);
+		LevelUpNaigaraComponent->Activate(true);
+	}
+}
+
 
 int32 AAuraCharacter::GetXP_Implementation() const
 {
@@ -131,10 +162,10 @@ void AAuraCharacter::InitAbilityActorInfo()
 	// Init Overlay in HUD
 	// 获取Controller并转类型为AAuraPlayerController，并判断是否为空
 	// 联机时，在客户端，自己的Controller不为空，其余玩家的Controller为空
-	if(AAuraPlayerController* AuraPlayerController = Cast<AAuraPlayerController>(GetController()))
+	if (AAuraPlayerController* AuraPlayerController = Cast<AAuraPlayerController>(GetController()))
 	{
 		// HUD仅对本地控制器的玩家有效
-		if(AAuraHUD* AuraHUD = Cast<AAuraHUD>(AuraPlayerController->GetHUD()))
+		if (AAuraHUD* AuraHUD = Cast<AAuraHUD>(AuraPlayerController->GetHUD()))
 		{
 			AuraHUD->InitOverlay(AuraPlayerController, AuraPlayerState, AbilitySystemComponent, AttributeSet);
 		}
